@@ -1,16 +1,17 @@
 import type { BabbleBuddyTheme } from '../types';
 
 export const defaultTheme: BabbleBuddyTheme = {
-  primaryColor: '#6366f1',
+  primaryColor: '#0f172a',
   backgroundColor: '#ffffff',
-  textColor: '#1f2937',
+  textColor: '#1e293b',
   fontFamily: 'system-ui, -apple-system, sans-serif',
   borderRadius: '12px',
 };
 
 export function injectStyles(theme: BabbleBuddyTheme, position: string) {
   const styleId = 'babble-buddy-styles';
-  if (document.getElementById(styleId)) return;
+  // Remove existing styles to allow theme changes
+  document.getElementById(styleId)?.remove();
 
   const positionStyles = getPositionStyles(position);
 
