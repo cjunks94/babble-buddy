@@ -1,11 +1,10 @@
 from typing import Literal
 
-from app.providers.base import BaseProvider
-from app.providers.ollama import OllamaProvider
 from app.providers.anthropic import AnthropicProvider
-from app.providers.openai import OpenAIProvider
+from app.providers.base import BaseProvider
 from app.providers.gemini import GeminiProvider
-
+from app.providers.ollama import OllamaProvider
+from app.providers.openai import OpenAIProvider
 
 ProviderType = Literal["ollama", "anthropic", "openai", "gemini"]
 
@@ -70,8 +69,7 @@ class ProviderFactory:
         """
         if provider_type not in cls.PROVIDERS:
             raise ValueError(
-                f"Unknown provider type: {provider_type}. "
-                f"Supported: {list(cls.PROVIDERS.keys())}"
+                f"Unknown provider type: {provider_type}. Supported: {list(cls.PROVIDERS.keys())}"
             )
 
         provider_class = cls.PROVIDERS[provider_type]

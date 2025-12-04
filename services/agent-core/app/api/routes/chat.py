@@ -3,6 +3,7 @@ from pydantic import BaseModel
 from sse_starlette.sse import EventSourceResponse
 
 from app.core.auth import get_current_token
+from app.core.logging import log_chat
 from app.core.prompts import build_system_prompt
 from app.core.rate_limit import limiter
 from app.core.sessions import session_manager
@@ -40,6 +41,8 @@ async def chat(
     history = [{"role": m.role, "content": m.content} for m in session.messages]
     system_prompt = build_system_prompt(session.context, body.style)
 
+    log_chat(session.id, len(body.message), "ollama")
+
     response_text = await ollama_provider.generate(
         prompt=body.message,
         system_prompt=system_prompt,
@@ -67,6 +70,8 @@ async def chat_stream(
 
     history = [{"role": m.role, "content": m.content} for m in session.messages]
     system_prompt = build_system_prompt(session.context, body.style)
+
+    log_chat(session.id, len(body.message), "ollama")
 
     async def event_generator():
         full_response = ""

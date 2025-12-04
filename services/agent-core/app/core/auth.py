@@ -18,9 +18,7 @@ async def get_current_token(
 ) -> AppToken:
     token = credentials.credentials
 
-    result = await db.execute(
-        select(AppToken).where(AppToken.token == token, AppToken.is_active == True)
-    )
+    result = await db.execute(select(AppToken).where(AppToken.token == token, AppToken.is_active))
     app_token = result.scalar_one_or_none()
 
     if not app_token:

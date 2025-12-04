@@ -1,5 +1,5 @@
 import json
-from typing import AsyncGenerator
+from collections.abc import AsyncGenerator
 
 import httpx
 
@@ -56,16 +56,20 @@ class GeminiProvider(BaseProvider):
                 elif role == "system":
                     continue  # Skip system messages in history
 
-                contents.append({
-                    "role": role,
-                    "parts": [{"text": msg.get("content", "")}],
-                })
+                contents.append(
+                    {
+                        "role": role,
+                        "parts": [{"text": msg.get("content", "")}],
+                    }
+                )
 
         # Add the current prompt
-        contents.append({
-            "role": "user",
-            "parts": [{"text": prompt}],
-        })
+        contents.append(
+            {
+                "role": "user",
+                "parts": [{"text": prompt}],
+            }
+        )
 
         return contents, system_instruction
 
@@ -75,9 +79,7 @@ class GeminiProvider(BaseProvider):
         system_prompt: str | None = None,
         messages: list[dict] | None = None,
     ) -> str:
-        contents, system_instruction = self._format_contents(
-            prompt, system_prompt, messages
-        )
+        contents, system_instruction = self._format_contents(prompt, system_prompt, messages)
 
         payload = {
             "contents": contents,
@@ -112,9 +114,7 @@ class GeminiProvider(BaseProvider):
         system_prompt: str | None = None,
         messages: list[dict] | None = None,
     ) -> AsyncGenerator[str, None]:
-        contents, system_instruction = self._format_contents(
-            prompt, system_prompt, messages
-        )
+        contents, system_instruction = self._format_contents(prompt, system_prompt, messages)
 
         payload = {
             "contents": contents,
@@ -157,11 +157,9 @@ class GeminiProvider(BaseProvider):
         """Check if we can reach the Gemini API."""
         try:
             # List models endpoint
-            response = await self.client.get(
-                f"{self.API_BASE}?key={self.api_key}"
-            )
+            response = await self.client.get(f"{self.API_BASE}?key={self.api_key}")
             return response.status_code == 200
-        except Exception:
+        except httpx.HTTPError:
             return False
 
     async def close(self):

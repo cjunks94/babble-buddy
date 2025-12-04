@@ -30,6 +30,9 @@ class Settings(BaseSettings):
     # Rate limiting
     rate_limit_per_minute: int = 60
 
+    # Debug mode
+    debug: bool = False
+
     # Admin
     admin_api_key: str = "change-me-in-production"
 

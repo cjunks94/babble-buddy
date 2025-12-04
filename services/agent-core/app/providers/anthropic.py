@@ -1,5 +1,5 @@
 import json
-from typing import AsyncGenerator
+from collections.abc import AsyncGenerator
 
 import httpx
 
@@ -49,10 +49,12 @@ class AnthropicProvider(BaseProvider):
                 # Claude uses "user" and "assistant" roles
                 if role == "system":
                     continue  # System is handled separately
-                formatted.append({
-                    "role": role,
-                    "content": msg.get("content", ""),
-                })
+                formatted.append(
+                    {
+                        "role": role,
+                        "content": msg.get("content", ""),
+                    }
+                )
 
         # Add the current prompt
         formatted.append({"role": "user", "content": prompt})
@@ -149,7 +151,7 @@ class AnthropicProvider(BaseProvider):
                 },
             )
             return response.status_code in (200, 400)  # 400 = valid key, bad request
-        except Exception:
+        except httpx.HTTPError:
             return False
 
     async def close(self):

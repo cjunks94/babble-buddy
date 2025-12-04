@@ -1,5 +1,5 @@
 import json
-from typing import AsyncGenerator
+from collections.abc import AsyncGenerator
 
 import httpx
 
@@ -52,10 +52,12 @@ class OpenAIProvider(BaseProvider):
         # Add conversation history
         if messages:
             for msg in messages:
-                formatted.append({
-                    "role": msg.get("role", "user"),
-                    "content": msg.get("content", ""),
-                })
+                formatted.append(
+                    {
+                        "role": msg.get("role", "user"),
+                        "content": msg.get("content", ""),
+                    }
+                )
 
         # Add the current prompt
         formatted.append({"role": "user", "content": prompt})
@@ -139,7 +141,7 @@ class OpenAIProvider(BaseProvider):
                 headers=self._get_headers(),
             )
             return response.status_code == 200
-        except Exception:
+        except httpx.HTTPError:
             return False
 
     async def close(self):

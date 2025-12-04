@@ -1,16 +1,16 @@
 """Tests for feature flag system."""
 
+from unittest.mock import patch
+
 import pytest
-from unittest.mock import patch, MagicMock
 from fastapi import HTTPException
 
 from app.utils.features import (
+    get_enabled_features,
+    is_external_providers_enabled,
     is_feature_enabled,
     is_multi_agent_enabled,
-    is_external_providers_enabled,
     require_feature,
-    get_enabled_features,
-    FeatureDisabledError,
 )
 
 

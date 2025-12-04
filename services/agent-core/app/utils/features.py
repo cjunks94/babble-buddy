@@ -1,7 +1,7 @@
 """Feature flag utilities for conditional feature access."""
 
+from collections.abc import Callable
 from functools import wraps
-from typing import Callable
 
 from fastapi import HTTPException, status
 

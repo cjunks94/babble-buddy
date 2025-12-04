@@ -1,5 +1,5 @@
 import json
-from typing import AsyncGenerator
+from collections.abc import AsyncGenerator
 
 import httpx
 
@@ -116,7 +116,7 @@ class OllamaProvider(BaseProvider):
         try:
             response = await self.client.get(f"{self.host}/api/tags")
             return response.status_code == 200
-        except Exception:
+        except httpx.HTTPError:
             return False
 
     async def close(self):

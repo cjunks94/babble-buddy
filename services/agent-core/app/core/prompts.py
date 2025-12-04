@@ -10,13 +10,13 @@ from typing import Literal
 
 from app.config import settings
 
-
 ResponseStyle = Literal["default", "brief", "detailed", "technical", "creative"]
 
 
 @dataclass
 class ModelParams:
     """LLM generation parameters."""
+
     max_tokens: int
     temperature: float
     top_p: float
@@ -67,23 +67,19 @@ STYLE_PRESETS: dict[ResponseStyle, ModelParams] = {
 # System prompt templates per style
 STYLE_PROMPTS: dict[ResponseStyle, str] = {
     "default": "You are a helpful AI assistant.",
-
     "brief": """You are a helpful AI assistant. Be concise and direct.
 - Keep responses to 2-3 sentences unless more detail is needed
 - Use bullet points for lists
 - Skip unnecessary preamble""",
-
     "detailed": """You are a helpful AI assistant providing thorough explanations.
 - Give comprehensive answers with context
 - Include relevant examples when helpful
 - Structure long responses with headers""",
-
     "technical": """You are a technical AI assistant for developers.
 - Be precise and accurate
 - Use proper terminology
 - Include code examples in markdown when relevant
 - Skip basic explanations unless asked""",
-
     "creative": """You are a creative AI assistant.
 - Be engaging and conversational
 - Use varied language and expressions

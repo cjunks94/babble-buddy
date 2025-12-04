@@ -6,14 +6,27 @@ from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
 from app.api.routes import chat, health, tokens
+from app.config import settings
+from app.core.logging import log_startup, logger
 from app.core.rate_limit import limiter
 from app.db.database import init_db
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    log_startup(
+        {
+            "ollama_host": settings.ollama_host,
+            "ollama_model": settings.ollama_model,
+            "response_style": settings.response_style,
+            "rate_limit": f"{settings.rate_limit_per_minute}/min",
+            "debug": settings.debug,
+        }
+    )
     await init_db()
+    logger.info("Database initialized")
     yield
+    logger.info("Shutting down")
 
 
 app = FastAPI(
