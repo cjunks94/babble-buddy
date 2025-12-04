@@ -1,7 +1,7 @@
 FROM ollama/ollama:latest
 
-# Default model to pull on startup
-ENV OLLAMA_MODEL=llama3.2
+# Default model to pull on startup (1b is smaller/faster to download)
+ENV OLLAMA_MODEL=llama3.2:1b
 # Bind to all interfaces on port 11434
 ENV OLLAMA_HOST=0.0.0.0:11434
 

@@ -3,8 +3,8 @@ builder = "dockerfile"
 dockerfilePath = "Dockerfile"
 
 [deploy]
-healthcheckPath = "/api/tags"
-healthcheckTimeout = 600
+# Disable health check during initial deploy (model download takes time)
+# Re-enable after first successful deploy if desired
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 3
 numReplicas = 1
