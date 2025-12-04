@@ -82,6 +82,59 @@
         color: #09090b;
       }
 
+      /* Page picker */
+      .page-picker {
+        display: flex;
+        gap: 8px;
+        margin-top: 16px;
+        flex-wrap: wrap;
+      }
+      .page-btn {
+        padding: 10px 20px;
+        border: 2px solid var(--card-border);
+        border-radius: 8px;
+        background: transparent;
+        color: var(--page-text);
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.2s;
+      }
+      .page-btn:hover {
+        border-color: var(--page-muted);
+        background: var(--card-border);
+      }
+      .page-btn.active {
+        border-color: var(--accent);
+        background: var(--accent);
+        color: #09090b;
+      }
+
+      /* Page sections */
+      .page-section {
+        display: none;
+      }
+      .page-section.active {
+        display: block;
+      }
+      .page-section h2 {
+        margin-top: 0;
+        color: var(--page-text);
+      }
+      .page-section p {
+        color: var(--page-muted);
+        line-height: 1.6;
+      }
+      .page-section strong {
+        color: var(--page-text);
+      }
+
+      /* Context display */
+      #context-display {
+        font-size: 12px;
+        margin: 0;
+      }
+
       /* Light theme variant */
       body.theme-light {
         --page-bg: #f8fafc;
@@ -136,11 +189,61 @@
   </head>
   <body>
     <h1>Babble Buddy</h1>
-    <p class="subtitle">Embeddable chat widget for your apps</p>
+    <p class="subtitle">Embeddable chat widget with page-aware context</p>
 
+    <!-- Page Navigation -->
     <div class="card">
-      <h2>Demo</h2>
-      <p>Click the chat bubble in the bottom-right corner. Try different themes:</p>
+      <h2>Simulated Pages</h2>
+      <p>Switch pages to see how the AI assistant adapts its context:</p>
+      <div class="page-picker">
+        <button class="page-btn active" data-page="home">Home</button>
+        <button class="page-btn" data-page="products">Products</button>
+        <button class="page-btn" data-page="checkout">Checkout</button>
+        <button class="page-btn" data-page="support">Support</button>
+      </div>
+    </div>
+
+    <!-- Dynamic Page Content -->
+    <div class="card" id="page-content">
+      <div id="page-home" class="page-section active">
+        <h2>Welcome to Demo Store</h2>
+        <p>This is the home page. The AI assistant knows you're browsing and can help with product discovery.</p>
+        <p><strong>Try asking:</strong> "What products do you have?" or "Help me find something"</p>
+      </div>
+      <div id="page-products" class="page-section">
+        <h2>Products</h2>
+        <p>Browse our catalog. The AI has access to the product schema and can help with filtering.</p>
+        <p><strong>Available data:</strong> products, categories, inventory</p>
+        <p><strong>Try asking:</strong> "Show me electronics under $100" or "What's in stock?"</p>
+      </div>
+      <div id="page-checkout" class="page-section">
+        <h2>Checkout</h2>
+        <p>Complete your purchase. The AI can help with payment questions and order issues.</p>
+        <p><strong>Available data:</strong> cart, shipping, payments</p>
+        <p><strong>Try asking:</strong> "What payment methods do you accept?" or "How long is shipping?"</p>
+      </div>
+      <div id="page-support" class="page-section">
+        <h2>Support Center</h2>
+        <p>Get help with your orders. The AI is in support mode and can assist with troubleshooting.</p>
+        <p><strong>Available data:</strong> orders, returns, FAQ</p>
+        <p><strong>Try asking:</strong> "Where's my order?" or "How do I return an item?"</p>
+      </div>
+    </div>
+
+    <!-- Current Context Display -->
+    <div class="card">
+      <h2>Current Context <span class="highlight">(sent to AI)</span></h2>
+      <pre id="context-display">{
+  "app": "Demo Store",
+  "page": "home",
+  "role": "sales",
+  "instructions": "Help users discover products and navigate the store."
+}</pre>
+    </div>
+
+    <!-- Theme Picker -->
+    <div class="card">
+      <h2>Widget Themes</h2>
       <div class="theme-picker">
         <button class="theme-btn active" data-theme="default" data-page-theme="">Dark</button>
         <button class="theme-btn" data-theme="light" data-page-theme="theme-light">Light</button>
@@ -150,6 +253,20 @@
       </div>
     </div>
 
+    <!-- Code Examples -->
+    <div class="card">
+      <h2>Dynamic Context API</h2>
+      <pre>// Update context when user navigates
+BabbleBuddy.setContext({
+  app: 'My App',
+  page: 'checkout',
+  role: 'support',
+  instructions: 'Help with payment and shipping questions.',
+  schema: ['cart', 'shipping', 'payments'],
+  user: { name: 'John', plan: 'premium' }
+});</pre>
+    </div>
+
     <div class="card">
       <h2>Embed in Your App</h2>
       <pre>&lt;script src="<span class="highlight">YOUR_WIDGET_URL</span>/babble-buddy.umd.cjs"&gt;&lt;/script&gt;
@@ -157,26 +274,13 @@
   BabbleBuddy.init({
     appToken: '<span class="highlight">your-app-token</span>',
     apiUrl: '<span class="highlight">your-agent-core-url</span>',
-    theme: {
-      primaryColor: '#0f172a',
-      backgroundColor: '#ffffff',
-      textColor: '#1e293b'
+    context: {
+      app: 'My App',
+      page: 'home',
+      instructions: 'Help users with...'
     }
   });
 &lt;/script&gt;</pre>
-    </div>
-
-    <div class="card">
-      <h2>Theme Options</h2>
-      <pre>{
-  theme: {
-    primaryColor: '#0f172a',    // Button & header color
-    backgroundColor: '#ffffff', // Chat background
-    textColor: '#1e293b',       // Text color
-    fontFamily: 'system-ui',    // Font stack
-    borderRadius: '12px'        // Corner rounding
-  }
-}</pre>
     </div>
 
     <script src="/babble-buddy.umd.cjs"></script>
@@ -191,6 +295,40 @@
         orange: { primaryColor: '#f97316', backgroundColor: '#292018', textColor: '#fff7ed' },
       };
 
+      // Page contexts - each page has different AI instructions
+      const pageContexts = {
+        home: {
+          app: 'Demo Store',
+          page: 'home',
+          role: 'sales',
+          instructions: 'Help users discover products and navigate the store. Be friendly and suggest popular items.',
+        },
+        products: {
+          app: 'Demo Store',
+          page: 'products',
+          role: 'sales',
+          instructions: 'Help users find and filter products. You have access to product catalog data.',
+          schema: ['products', 'categories', 'inventory'],
+        },
+        checkout: {
+          app: 'Demo Store',
+          page: 'checkout',
+          role: 'support',
+          instructions: 'Help users complete their purchase. Answer questions about payment methods, shipping, and order processing.',
+          schema: ['cart', 'shipping', 'payments'],
+        },
+        support: {
+          app: 'Demo Store',
+          page: 'support',
+          role: 'support',
+          instructions: 'Help users with order issues, returns, and troubleshooting. Be empathetic and solution-focused.',
+          schema: ['orders', 'returns', 'FAQ'],
+        },
+      };
+
+      let currentTheme = 'default';
+      let currentPage = 'home';
+
       function initWidget(themeName) {
         BabbleBuddy.destroy();
 
@@ -199,6 +337,7 @@
           apiUrl: window.BABBLE_BUDDY_API_URL || 'http://localhost:8000',
           greeting: window.BABBLE_BUDDY_GREETING || 'Hi! How can I help you today?',
           theme: themes[themeName] || themes.default,
+          context: pageContexts[currentPage],
         };
 
         const params = new URLSearchParams(window.location.search);
@@ -206,15 +345,33 @@
         if (params.get('api')) config.apiUrl = params.get('api');
 
         BabbleBuddy.init(config);
+        currentTheme = themeName;
       }
 
       function setPageTheme(pageThemeClass) {
-        // Remove all theme classes
         document.body.classList.remove('theme-light', 'theme-blue', 'theme-green', 'theme-orange');
-        // Add new theme class if provided
         if (pageThemeClass) {
           document.body.classList.add(pageThemeClass);
         }
+      }
+
+      function setPage(pageName) {
+        currentPage = pageName;
+
+        // Update page sections
+        document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+        document.getElementById('page-' + pageName)?.classList.add('active');
+
+        // Update page buttons
+        document.querySelectorAll('.page-btn').forEach(b => b.classList.remove('active'));
+        document.querySelector(`[data-page="${pageName}"]`)?.classList.add('active');
+
+        // Update context display
+        const context = pageContexts[pageName];
+        document.getElementById('context-display').textContent = JSON.stringify(context, null, 2);
+
+        // Update widget context
+        BabbleBuddy.setContext(context);
       }
 
       // Theme picker
@@ -227,8 +384,16 @@
         });
       });
 
-      // Initialize with default dark theme
+      // Page picker
+      document.querySelectorAll('.page-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          setPage(btn.dataset.page);
+        });
+      });
+
+      // Initialize with default dark theme and home page
       initWidget('default');
+      setPage('home');
     </script>
   </body>
 </html>

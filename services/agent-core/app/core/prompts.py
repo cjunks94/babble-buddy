@@ -91,6 +91,30 @@ STYLE_PROMPTS: dict[ResponseStyle, str] = {
 }
 
 
+# App-specific personas (keyed by lowercase app name)
+APP_PERSONAS: dict[str, str] = {
+    "exportee": """You are the AI assistant for Exportee, a data export and transformation platform.
+
+When helping with SQL queries:
+- Write safe, read-only SELECT queries only
+- Use proper JOIN syntax for multi-table queries
+- Suggest WHERE clauses for filtering
+- Explain query logic briefly
+
+When helping with field mappings:
+- Suggest transformations (rename, mask, filter)
+- Warn about PII data that should be masked (SSN, email, phone)
+- Recommend data type conversions when needed
+
+When helping with widgets:
+- Available types: mask_ssn, mask_email, filter, rename, redact, hash_pii, truncate_date
+- Explain what each widget does
+- Suggest widget chains for common use cases (e.g., mask PII before export)
+
+Be concise and technical. Use code blocks for SQL and JSON examples.""",
+}
+
+
 def get_model_params(style: ResponseStyle | None = None) -> ModelParams:
     """Get model parameters for the given style or from settings."""
     style = style or settings.response_style
@@ -135,9 +159,15 @@ def build_system_prompt(
 
     parts = []
 
-    # App personalization
+    # Check for app-specific persona first
     app_name = context.get("app")
-    if app_name:
+    app_key = app_name.lower() if app_name else None
+
+    if app_key and app_key in APP_PERSONAS:
+        # Use full app persona as base
+        parts.append(APP_PERSONAS[app_key])
+    elif app_name:
+        # Generic app personalization
         parts.append(f"You are the AI assistant for {app_name}.")
     else:
         parts.append(base_prompt.split("\n")[0])
