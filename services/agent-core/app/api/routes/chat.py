@@ -3,6 +3,7 @@ from pydantic import BaseModel
 from sse_starlette.sse import EventSourceResponse
 
 from app.core.auth import get_current_token
+from app.core.prompts import build_system_prompt
 from app.core.rate_limit import limiter
 from app.core.sessions import session_manager
 from app.db.models import AppToken
@@ -14,7 +15,8 @@ router = APIRouter()
 class ChatRequest(BaseModel):
     message: str
     session_id: str | None = None
-    context: dict | None = None
+    context: dict | None = None  # Page/app context from frontend
+    style: str | None = None  # Response style override
 
 
 class ChatResponse(BaseModel):
@@ -36,8 +38,7 @@ async def chat(
     )
 
     history = [{"role": m.role, "content": m.content} for m in session.messages]
-
-    system_prompt = _build_system_prompt(session.context)
+    system_prompt = build_system_prompt(session.context, body.style)
 
     response_text = await ollama_provider.generate(
         prompt=body.message,
@@ -65,7 +66,7 @@ async def chat_stream(
     )
 
     history = [{"role": m.role, "content": m.content} for m in session.messages]
-    system_prompt = _build_system_prompt(session.context)
+    system_prompt = build_system_prompt(session.context, body.style)
 
     async def event_generator():
         full_response = ""
@@ -83,31 +84,3 @@ async def chat_stream(
         yield {"event": "done", "data": session.id}
 
     return EventSourceResponse(event_generator())
-
-
-def _build_system_prompt(context: dict | None) -> str:
-    base_prompt = """You are a helpful AI assistant. Be concise and direct.
-Keep responses brief unless asked for detail. Use markdown sparingly:
-- Use `code` for inline code
-- Use ```lang for code blocks (always close with ```)
-- Use **bold** for emphasis
-Avoid long explanations or numbered lists unless specifically asked."""
-
-    if not context:
-        return base_prompt
-
-    app_name = context.get("app", "")
-    if app_name:
-        base_prompt = f"You are a helpful AI assistant for {app_name}. " + base_prompt.split(". ", 1)[1]
-
-    if "schema" in context:
-        schema_info = context["schema"]
-        if isinstance(schema_info, list):
-            base_prompt += f" Available tables: {', '.join(schema_info)}."
-        elif isinstance(schema_info, str):
-            base_prompt += f" {schema_info}"
-
-    if "instructions" in context:
-        base_prompt += f" {context['instructions']}"
-
-    return base_prompt

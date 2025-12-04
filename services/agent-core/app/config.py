@@ -15,8 +15,17 @@ class Settings(BaseSettings):
     # Ollama
     ollama_host: str = "http://localhost:11434"
     ollama_model: str = "llama3.2"
-    ollama_max_tokens: int = 512  # Max tokens in response (num_predict)
-    ollama_temperature: float = 0.7  # Response creativity (0.0-1.0)
+
+    # Model parameters (see: promptingguide.ai/introduction/settings)
+    ollama_max_tokens: int = 256  # Max tokens - lower = faster responses
+    ollama_temperature: float = 0.3  # Creativity (0.0-1.0) - lower = more focused
+    ollama_top_p: float = 0.9  # Nucleus sampling - balance diversity/quality
+    ollama_repeat_penalty: float = 1.1  # Reduce repetition (1.0 = off)
+    ollama_num_ctx: int = 2048  # Context window size
+
+    # Response style preset (overrides individual params)
+    # Options: "default", "brief", "detailed", "technical", "creative"
+    response_style: str = "brief"
 
     # Rate limiting
     rate_limit_per_minute: int = 60
