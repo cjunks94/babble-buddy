@@ -1,7 +1,9 @@
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
@@ -50,3 +52,8 @@ app.add_middleware(
 app.include_router(health.router, tags=["Health"])
 app.include_router(chat.router, prefix="/api/v1", tags=["Chat"])
 app.include_router(tokens.router, prefix="/api/v1/admin", tags=["Admin"])
+
+# Serve widget bundle as static files
+static_dir = Path(__file__).parent.parent / "static"
+if static_dir.exists():
+    app.mount("/widget", StaticFiles(directory=static_dir), name="static")
