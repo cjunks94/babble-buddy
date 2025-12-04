@@ -258,15 +258,16 @@ export function injectStyles(theme: BabbleBuddyTheme, position: string) {
       font-size: 12px;
       line-height: 1.5;
       margin: 8px 0;
-      white-space: pre;
-      word-break: normal;
+      white-space: pre-wrap;
+      word-break: break-word;
+      max-width: 100%;
     }
 
     .bb-message .bb-code-block code {
       background: none;
       padding: 0;
       color: inherit;
-      white-space: pre;
+      white-space: pre-wrap;
     }
 
     .bb-message .bb-inline-code {
