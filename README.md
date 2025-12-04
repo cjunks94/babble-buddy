@@ -30,12 +30,19 @@ An embeddable AI chatbot widget that connects to self-hosted AI backends.
 ## Features
 
 - **Embeddable widget** - Drop into any web app with a single script tag
-- **Customizable themes** - Match your brand colors and style
+- **Customizable themes** - Dark, light, blue, green, orange presets
+- **Page context** - Pass page-specific context for relevant responses
+- **Response styles** - Brief, detailed, technical, or creative presets
 - **Markdown support** - Code blocks, inline code, bold, italic, links
 - **Streaming responses** - Real-time token streaming
 - **Session management** - Maintains conversation context
 - **Self-hosted AI** - Connect to Ollama or other backends
 - **Token authentication** - Secure multi-tenant access
+
+### Coming Soon
+
+- **Multi-agent orchestration** - Multiple AI providers working together
+- **Agent roles** - Leader, coder, reviewer agents with different models
 
 ## Services
 
@@ -156,10 +163,19 @@ Save the returned token (starts with `bb_`).
 | `DATABASE_URL` | Yes | - | PostgreSQL connection string |
 | `OLLAMA_HOST` | Yes | `http://localhost:11434` | Ollama API endpoint |
 | `OLLAMA_MODEL` | No | `llama3.2` | Model to use |
-| `OLLAMA_MAX_TOKENS` | No | `512` | Max tokens in response |
-| `OLLAMA_TEMPERATURE` | No | `0.7` | Response creativity (0.0-1.0) |
 | `ADMIN_API_KEY` | Yes | - | Admin key for token management |
 | `RATE_LIMIT_PER_MINUTE` | No | `60` | Rate limit per token |
+
+#### Prompt Engineering
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `OLLAMA_MAX_TOKENS` | `256` | Max tokens in response (lower = faster) |
+| `OLLAMA_TEMPERATURE` | `0.3` | Creativity (0.0-1.0, lower = more focused) |
+| `OLLAMA_TOP_P` | `0.9` | Nucleus sampling (diversity vs quality) |
+| `OLLAMA_REPEAT_PENALTY` | `1.1` | Reduce repetition (1.0 = off) |
+| `OLLAMA_NUM_CTX` | `2048` | Context window size |
+| `RESPONSE_STYLE` | `brief` | Preset: `brief`, `detailed`, `technical`, `creative` |
 
 ### Widget (Demo Page)
 
@@ -204,10 +220,21 @@ BabbleBuddy.init({
   // Optional
   position: 'bottom-right',  // bottom-left, top-right, top-left
   greeting: 'Hi! How can I help?',
+
+  // Context - sent to backend for personalized responses
   context: {
-    app: 'my-app',
-    instructions: 'Help users build SQL queries'
+    app: 'MyApp',              // App name for personalization
+    page: 'checkout',          // Current page/section
+    role: 'support',           // Persona: support, sales, onboarding, technical
+    instructions: 'Help users complete their purchase',
+    schema: ['users', 'orders', 'products'],  // Data hints
+    user: {                    // User info (optional)
+      name: 'John',
+      plan: 'premium'
+    }
   },
+
+  // Theme
   theme: {
     primaryColor: '#0f172a',    // Button & header color
     backgroundColor: '#ffffff', // Chat window background
@@ -221,18 +248,40 @@ BabbleBuddy.init({
 ### Theme Examples
 
 ```javascript
-// Dark theme
+// Dark theme (default on demo)
 theme: {
-  primaryColor: '#18181b',
+  primaryColor: '#3f3f46',
   backgroundColor: '#27272a',
   textColor: '#fafafa'
 }
 
+// Light theme
+theme: {
+  primaryColor: '#0f172a',
+  backgroundColor: '#ffffff',
+  textColor: '#1e293b'
+}
+
 // Blue theme
-theme: { primaryColor: '#2563eb' }
+theme: {
+  primaryColor: '#3b82f6',
+  backgroundColor: '#1e293b',
+  textColor: '#f1f5f9'
+}
 
 // Green theme
-theme: { primaryColor: '#059669' }
+theme: {
+  primaryColor: '#10b981',
+  backgroundColor: '#064e3b',
+  textColor: '#ecfdf5'
+}
+
+// Orange theme
+theme: {
+  primaryColor: '#f97316',
+  backgroundColor: '#292018',
+  textColor: '#fff7ed'
+}
 ```
 
 ### JavaScript API
