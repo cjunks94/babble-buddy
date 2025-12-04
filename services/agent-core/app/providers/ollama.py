@@ -8,6 +8,9 @@ from app.providers.base import BaseProvider
 
 
 class OllamaProvider(BaseProvider):
+    provider_name = "ollama"
+    supports_streaming = True
+
     def __init__(
         self,
         host: str | None = None,
