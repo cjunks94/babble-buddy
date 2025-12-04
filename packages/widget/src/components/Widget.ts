@@ -146,7 +146,9 @@ export class Widget {
       .map(
         (msg) => `
         <div class="bb-message bb-${msg.role}${msg.isStreaming ? ' bb-streaming' : ''}">
-          ${msg.role === 'assistant' ? renderMarkdown(msg.content) : this.escapeHtml(msg.content)}
+          ${msg.role === 'assistant' && !msg.isStreaming
+            ? renderMarkdown(msg.content)
+            : this.escapeHtml(msg.content)}
         </div>
       `
       )

@@ -86,14 +86,19 @@ async def chat_stream(
 
 
 def _build_system_prompt(context: dict | None) -> str:
-    base_prompt = "You are a helpful AI assistant."
+    base_prompt = """You are a helpful AI assistant. Be concise and direct.
+Keep responses brief unless asked for detail. Use markdown sparingly:
+- Use `code` for inline code
+- Use ```lang for code blocks (always close with ```)
+- Use **bold** for emphasis
+Avoid long explanations or numbered lists unless specifically asked."""
 
     if not context:
         return base_prompt
 
     app_name = context.get("app", "")
     if app_name:
-        base_prompt = f"You are a helpful AI assistant for {app_name}."
+        base_prompt = f"You are a helpful AI assistant for {app_name}. " + base_prompt.split(". ", 1)[1]
 
     if "schema" in context:
         schema_info = context["schema"]
