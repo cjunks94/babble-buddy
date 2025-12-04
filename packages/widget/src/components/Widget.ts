@@ -3,6 +3,7 @@ import { ApiClient } from '../utils/api';
 import { createStore, type Store } from '../utils/state';
 import { defaultTheme, injectStyles } from '../styles/theme';
 import { icons } from '../styles/icons';
+import { renderMarkdown } from '../utils/markdown';
 
 export class Widget {
   private config: Required<BabbleBuddyConfig>;
@@ -145,7 +146,7 @@ export class Widget {
       .map(
         (msg) => `
         <div class="bb-message bb-${msg.role}${msg.isStreaming ? ' bb-streaming' : ''}">
-          ${this.escapeHtml(msg.content)}
+          ${msg.role === 'assistant' ? renderMarkdown(msg.content) : this.escapeHtml(msg.content)}
         </div>
       `
       )

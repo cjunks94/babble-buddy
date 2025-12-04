@@ -196,6 +196,52 @@ export function injectStyles(theme: BabbleBuddyTheme, position: string) {
       border-radius: 8px;
       font-size: 13px;
     }
+
+    /* Markdown styles */
+    .bb-message .bb-code-block {
+      background: #1f2937;
+      color: #e5e7eb;
+      padding: 12px;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+      font-size: 13px;
+      line-height: 1.4;
+      margin: 8px 0;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .bb-message .bb-code-block code {
+      background: none;
+      padding: 0;
+      color: inherit;
+    }
+
+    .bb-message .bb-inline-code {
+      background: rgba(0, 0, 0, 0.08);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+      font-size: 13px;
+    }
+
+    .bb-message.bb-user .bb-inline-code {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .bb-message a {
+      color: inherit;
+      text-decoration: underline;
+    }
+
+    .bb-message strong {
+      font-weight: 600;
+    }
+
+    .bb-message em {
+      font-style: italic;
+    }
   `;
 
   const style = document.createElement('style');

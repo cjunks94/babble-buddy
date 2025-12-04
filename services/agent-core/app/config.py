@@ -15,6 +15,8 @@ class Settings(BaseSettings):
     # Ollama
     ollama_host: str = "http://localhost:11434"
     ollama_model: str = "llama3.2"
+    ollama_max_tokens: int = 512  # Max tokens in response (num_predict)
+    ollama_temperature: float = 0.7  # Response creativity (0.0-1.0)
 
     # Rate limiting
     rate_limit_per_minute: int = 60

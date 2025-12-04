@@ -8,9 +8,17 @@ from app.providers.base import BaseProvider
 
 
 class OllamaProvider(BaseProvider):
-    def __init__(self, host: str | None = None, model: str | None = None):
+    def __init__(
+        self,
+        host: str | None = None,
+        model: str | None = None,
+        max_tokens: int | None = None,
+        temperature: float | None = None,
+    ):
         self.host = host or settings.ollama_host
         self.model = model or settings.ollama_model
+        self.max_tokens = max_tokens or settings.ollama_max_tokens
+        self.temperature = temperature or settings.ollama_temperature
         self.client = httpx.AsyncClient(timeout=120.0)
 
     async def generate(
@@ -22,6 +30,10 @@ class OllamaProvider(BaseProvider):
         payload = {
             "model": self.model,
             "stream": False,
+            "options": {
+                "num_predict": self.max_tokens,
+                "temperature": self.temperature,
+            },
         }
 
         if messages:
@@ -55,6 +67,10 @@ class OllamaProvider(BaseProvider):
         payload = {
             "model": self.model,
             "stream": True,
+            "options": {
+                "num_predict": self.max_tokens,
+                "temperature": self.temperature,
+            },
         }
 
         if messages:
