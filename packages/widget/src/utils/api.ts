@@ -60,7 +60,7 @@ export class ApiClient {
 
       for (const line of lines) {
         if (line.startsWith('event: ')) {
-          const eventType = line.slice(7).trim();
+          // Skip event type lines (we detect done via data content)
           continue;
         }
         if (line.startsWith('data: ')) {
