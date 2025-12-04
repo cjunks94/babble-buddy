@@ -1,13 +1,11 @@
 # Babble Buddy
 
-An embeddable AI chatbot agent (like Clippy) that connects to self-hosted AI backends.
+An embeddable AI chatbot widget that connects to self-hosted AI backends.
 
-## 🚀 Live Demo
+## Live Demo
 
-Try it now!
-
-- **Demo Page**: [babble-buddy-demo.cjunker.dev](https://babble-buddy-demo.cjunker.dev)
-- **API Endpoint**: [babble-buddy-api.cjunker.dev](https://babble-buddy-api.cjunker.dev)
+- **Demo Page**: [demo-production-d4be.up.railway.app](https://demo-production-d4be.up.railway.app)
+- **API**: [babble-buddy-api.cjunker.dev](https://babble-buddy-api.cjunker.dev)
 
 ## Architecture
 
@@ -29,6 +27,16 @@ Try it now!
                             └─────────────────────┘
 ```
 
+## Features
+
+- **Embeddable widget** - Drop into any web app with a single script tag
+- **Customizable themes** - Match your brand colors and style
+- **Markdown support** - Code blocks, inline code, bold, italic, links
+- **Streaming responses** - Real-time token streaming
+- **Session management** - Maintains conversation context
+- **Self-hosted AI** - Connect to Ollama or other backends
+- **Token authentication** - Secure multi-tenant access
+
 ## Services
 
 | Service | Description | Directory |
@@ -36,6 +44,8 @@ Try it now!
 | **Agent Core** | Python FastAPI backend for AI interactions | `services/agent-core/` |
 | **Ollama** | Self-hosted LLM inference server | `services/ollama/` |
 | **Widget** | Embeddable TypeScript chat widget | `packages/widget/` |
+
+---
 
 ## Quick Start (Local)
 
@@ -92,42 +102,45 @@ Open `http://localhost:5173` and chat!
 
 ### Step 2: Deploy Ollama
 
-1. Click **New** → **GitHub Repo** → Select `babble-buddy`
+1. Click **New** → **GitHub Repo** → Select your repo
 2. Set **Root Directory**: `services/ollama`
 3. Set environment variable:
-   - `OLLAMA_MODEL` = `llama3.2` (or your preferred model)
+   - `OLLAMA_MODEL` = `llama3.2`
 4. **Add a Volume** (recommended):
-   - Go to Settings → Volumes
-   - Mount path: `/root/.ollama`
-   - This persists models between deploys
+   - Settings → Volumes → Mount path: `/root/.ollama`
 5. Wait for deploy (first time takes 3-5 min to pull model)
-6. Copy the Ollama service URL (e.g., `https://ollama-xxx.railway.app`)
+6. Note the **private** hostname (e.g., `ollama.railway.internal`)
 
 ### Step 3: Deploy Agent Core
 
-1. Click **New** → **GitHub Repo** → Select `babble-buddy`
+1. Click **New** → **GitHub Repo** → Select your repo
 2. Set **Root Directory**: `services/agent-core`
 3. Set environment variables:
    ```
    DATABASE_URL=${{Postgres.DATABASE_URL}}
-   OLLAMA_HOST=https://ollama-xxx.railway.app  (from step 2)
+   OLLAMA_HOST=http://ollama.railway.internal:11434
    ADMIN_API_KEY=your-secure-random-key
    ```
-4. Copy the Agent Core URL (e.g., `https://agent-core-xxx.railway.app`)
+4. Generate a public domain or add custom domain
 
-### Step 4: Deploy Widget (Optional Demo)
+### Step 4: Deploy Widget (Optional)
 
-1. Click **New** → **GitHub Repo** → Select `babble-buddy`
+1. Click **New** → **GitHub Repo** → Select your repo
 2. Set **Root Directory**: `packages/widget`
-3. This hosts a demo page where you can test the widget
+3. Set environment variables:
+   ```
+   BABBLE_BUDDY_API_URL=https://your-agent-core-url
+   BABBLE_BUDDY_TOKEN=bb_your_token
+   ```
+4. This hosts the demo page for testing
 
 ### Step 5: Create App Token
 
 ```bash
-curl -X POST https://agent-core-xxx.railway.app/api/v1/admin/tokens \
+curl -X POST https://your-agent-core-url/api/v1/admin/tokens \
   -H "Authorization: Bearer your-secure-random-key" \
   -H "Content-Type: application/json" \
-  -d '{"name": "my-app", "description": "My first app"}'
+  -d '{"name": "my-app"}'
 ```
 
 Save the returned token (starts with `bb_`).
@@ -143,8 +156,18 @@ Save the returned token (starts with `bb_`).
 | `DATABASE_URL` | Yes | - | PostgreSQL connection string |
 | `OLLAMA_HOST` | Yes | `http://localhost:11434` | Ollama API endpoint |
 | `OLLAMA_MODEL` | No | `llama3.2` | Model to use |
+| `OLLAMA_MAX_TOKENS` | No | `512` | Max tokens in response |
+| `OLLAMA_TEMPERATURE` | No | `0.7` | Response creativity (0.0-1.0) |
 | `ADMIN_API_KEY` | Yes | - | Admin key for token management |
 | `RATE_LIMIT_PER_MINUTE` | No | `60` | Rate limit per token |
+
+### Widget (Demo Page)
+
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `BABBLE_BUDDY_API_URL` | No | `http://localhost:8000` | Agent Core URL |
+| `BABBLE_BUDDY_TOKEN` | No | `demo-token` | App token for demo |
+| `BABBLE_BUDDY_GREETING` | No | `Hi! How can I help you today?` | Initial greeting |
 
 ### Ollama
 
@@ -157,11 +180,11 @@ Save the returned token (starts with `bb_`).
 ## Embed the Widget
 
 ```html
-<script src="https://babble-buddy-demo.cjunker.dev/babble-buddy.umd.cjs"></script>
+<script src="https://your-widget-url/babble-buddy.umd.cjs"></script>
 <script>
   BabbleBuddy.init({
     appToken: 'bb_your_token_here',
-    apiUrl: 'https://babble-buddy-api.cjunker.dev',
+    apiUrl: 'https://your-agent-core-url',
     context: {
       app: 'my-app',
       instructions: 'Help users with their questions'
@@ -176,22 +199,49 @@ Save the returned token (starts with `bb_`).
 BabbleBuddy.init({
   // Required
   appToken: 'bb_xxx',
-  apiUrl: 'https://babble-buddy-api.cjunker.dev',
+  apiUrl: 'https://your-agent-core-url',
 
   // Optional
   position: 'bottom-right',  // bottom-left, top-right, top-left
   greeting: 'Hi! How can I help?',
   context: {
-    app: 'exportee',
-    schema: ['users', 'orders'],
+    app: 'my-app',
     instructions: 'Help users build SQL queries'
   },
   theme: {
-    primaryColor: '#6366f1',
-    backgroundColor: '#ffffff',
-    textColor: '#1f2937'
+    primaryColor: '#0f172a',    // Button & header color
+    backgroundColor: '#ffffff', // Chat window background
+    textColor: '#1e293b',       // Text color
+    fontFamily: 'system-ui',    // Font stack
+    borderRadius: '12px'        // Corner rounding
   }
 });
+```
+
+### Theme Examples
+
+```javascript
+// Dark theme
+theme: {
+  primaryColor: '#18181b',
+  backgroundColor: '#27272a',
+  textColor: '#fafafa'
+}
+
+// Blue theme
+theme: { primaryColor: '#2563eb' }
+
+// Green theme
+theme: { primaryColor: '#059669' }
+```
+
+### JavaScript API
+
+```javascript
+BabbleBuddy.open();           // Open chat window
+BabbleBuddy.close();          // Close chat window
+BabbleBuddy.destroy();        // Remove widget from page
+BabbleBuddy.setContext({...}); // Update context dynamically
 ```
 
 ---
