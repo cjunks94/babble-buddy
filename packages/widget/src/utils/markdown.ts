@@ -1,18 +1,29 @@
 /**
  * Simple markdown renderer for chat messages
- * Supports: code blocks, inline code, bold, italic, links
+ * Supports: code blocks, inline code, bold, italic, links, headers
  */
 export function renderMarkdown(text: string): string {
-  let html = escapeHtml(text);
+  // Preserve code blocks first (before escaping)
+  const codeBlocks: string[] = [];
+  let processed = text.replace(/```(\w*)\n?([\s\S]*?)```/g, (_match, lang, code) => {
+    const index = codeBlocks.length;
+    const langLabel = lang ? `<div class="bb-code-lang">${lang}</div>` : '';
+    codeBlocks.push(`${langLabel}<pre class="bb-code-block"><code>${escapeHtml(code.trim())}</code></pre>`);
+    return `__CODE_BLOCK_${index}__`;
+  });
 
-  // Code blocks (```language\ncode```)
-  html = html.replace(
-    /```(\w*)\n?([\s\S]*?)```/g,
-    (_match, lang, code) => {
-      const langClass = lang ? ` data-lang="${lang}"` : '';
-      return `<pre class="bb-code-block"${langClass}><code>${code.trim()}</code></pre>`;
-    }
-  );
+  // Now escape HTML
+  let html = escapeHtml(processed);
+
+  // Restore code blocks
+  codeBlocks.forEach((block, i) => {
+    html = html.replace(`__CODE_BLOCK_${i}__`, block);
+  });
+
+  // Headers (## Header)
+  html = html.replace(/^### (.+)$/gm, '<strong class="bb-h3">$1</strong>');
+  html = html.replace(/^## (.+)$/gm, '<strong class="bb-h2">$1</strong>');
+  html = html.replace(/^# (.+)$/gm, '<strong class="bb-h1">$1</strong>');
 
   // Inline code (`code`)
   html = html.replace(/`([^`]+)`/g, '<code class="bb-inline-code">$1</code>');
@@ -30,8 +41,16 @@ export function renderMarkdown(text: string): string {
     '<a href="$2" target="_blank" rel="noopener">$1</a>'
   );
 
-  // Line breaks
+  // Double line breaks = paragraph
+  html = html.replace(/\n\n/g, '</p><p>');
+
+  // Single line breaks
   html = html.replace(/\n/g, '<br>');
+
+  // Wrap in paragraph if we added </p><p>
+  if (html.includes('</p><p>')) {
+    html = '<p>' + html + '</p>';
+  }
 
   return html;
 }

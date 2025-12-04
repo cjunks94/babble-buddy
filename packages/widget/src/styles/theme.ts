@@ -129,7 +129,8 @@ export function injectStyles(theme: BabbleBuddyTheme, position: string) {
       border-radius: 16px;
       font-size: 14px;
       line-height: 1.5;
-      word-wrap: break-word;
+      overflow-wrap: break-word;
+      word-break: normal;
     }
 
     .bb-message.bb-user {
@@ -223,6 +224,30 @@ export function injectStyles(theme: BabbleBuddyTheme, position: string) {
     }
 
     /* Markdown styles */
+    .bb-message p {
+      margin: 0 0 8px 0;
+    }
+
+    .bb-message p:last-child {
+      margin-bottom: 0;
+    }
+
+    .bb-message .bb-code-lang {
+      background: #374151;
+      color: #9ca3af;
+      font-size: 11px;
+      padding: 4px 12px;
+      border-radius: 8px 8px 0 0;
+      margin: 8px 0 0 0;
+      font-family: var(--bb-font);
+      text-transform: lowercase;
+    }
+
+    .bb-message .bb-code-lang + .bb-code-block {
+      margin-top: 0;
+      border-radius: 0 0 8px 8px;
+    }
+
     .bb-message .bb-code-block {
       background: #1f2937;
       color: #e5e7eb;
@@ -230,17 +255,18 @@ export function injectStyles(theme: BabbleBuddyTheme, position: string) {
       border-radius: 8px;
       overflow-x: auto;
       font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
-      font-size: 13px;
-      line-height: 1.4;
+      font-size: 12px;
+      line-height: 1.5;
       margin: 8px 0;
-      white-space: pre-wrap;
-      word-break: break-word;
+      white-space: pre;
+      word-break: normal;
     }
 
     .bb-message .bb-code-block code {
       background: none;
       padding: 0;
       color: inherit;
+      white-space: pre;
     }
 
     .bb-message .bb-inline-code {
@@ -248,12 +274,30 @@ export function injectStyles(theme: BabbleBuddyTheme, position: string) {
       padding: 2px 6px;
       border-radius: 4px;
       font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
-      font-size: 13px;
+      font-size: 12px;
     }
 
     .bb-message.bb-user .bb-inline-code {
       background: rgba(255, 255, 255, 0.25);
     }
+
+    .bb-message .bb-h1,
+    .bb-message .bb-h2,
+    .bb-message .bb-h3 {
+      display: block;
+      margin: 12px 0 6px 0;
+      font-weight: 600;
+    }
+
+    .bb-message .bb-h1:first-child,
+    .bb-message .bb-h2:first-child,
+    .bb-message .bb-h3:first-child {
+      margin-top: 0;
+    }
+
+    .bb-message .bb-h1 { font-size: 16px; }
+    .bb-message .bb-h2 { font-size: 15px; }
+    .bb-message .bb-h3 { font-size: 14px; }
 
     .bb-message a {
       color: inherit;
