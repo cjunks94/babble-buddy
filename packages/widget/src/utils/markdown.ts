@@ -3,9 +3,14 @@
  * Supports: code blocks, inline code, bold, italic, links, headers
  */
 export function renderMarkdown(text: string): string {
+  // Normalize malformed code blocks (LLMs sometimes add spaces between backticks)
+  let normalized = text
+    .replace(/`\s*`\s*`/g, '```')  // ` ` ` -> ```
+    .replace(/`{3,}/g, '```');     // ```` or more -> ```
+
   // Preserve code blocks first (before escaping)
   const codeBlocks: string[] = [];
-  let processed = text.replace(/```(\w*)\n?([\s\S]*?)```/g, (_match, lang, code) => {
+  let processed = normalized.replace(/```(\w*)\n?([\s\S]*?)```/g, (_match, lang, code) => {
     const index = codeBlocks.length;
     const langLabel = lang ? `<div class="bb-code-lang">${lang}</div>` : '';
     codeBlocks.push(`${langLabel}<pre class="bb-code-block"><code>${escapeHtml(code.trim())}</code></pre>`);

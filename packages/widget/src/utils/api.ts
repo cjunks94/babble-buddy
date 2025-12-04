@@ -64,11 +64,11 @@ export class ApiClient {
           continue;
         }
         if (line.startsWith('data: ')) {
-          const data = line.slice(6);
+          const data = line.slice(6).trim();
           if (data === '') continue;
 
-          // Check if this is the final "done" event with session_id
-          if (data.startsWith('bb_') || data.match(/^[a-f0-9-]{36}$/)) {
+          // Check if this is the final "done" event with session_id (UUID format)
+          if (data.startsWith('bb_') || /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(data)) {
             yield { type: 'done', data };
           } else {
             yield { type: 'chunk', data };
