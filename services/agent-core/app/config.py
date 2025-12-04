@@ -39,6 +39,12 @@ class Settings(BaseSettings):
     # Feature flags
     feature_multi_agent: bool = False  # Enable multi-agent orchestration
     feature_external_providers: bool = False  # Enable Claude/OpenAI/Gemini providers
+    feature_memory: bool = True  # Enable semantic memory for conversations
+
+    # Memory settings
+    memory_embedding_model: str = "nomic-embed-text"  # Ollama embedding model
+    memory_recall_limit: int = 5  # Max memories to inject per request
+    memory_min_similarity: float = 0.6  # Minimum similarity threshold
 
     # Encryption (for API keys)
     encryption_key: str | None = None  # Fernet key for encrypting stored API keys

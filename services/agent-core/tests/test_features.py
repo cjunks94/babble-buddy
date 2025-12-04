@@ -29,10 +29,13 @@ class TestFeatureFlags:
         """Unknown features should return False."""
         assert not is_feature_enabled("nonexistent_feature")
 
-    def test_get_enabled_features_empty_by_default(self):
-        """No features should be enabled by default."""
+    def test_get_enabled_features_memory_by_default(self):
+        """Memory feature should be enabled by default."""
         features = get_enabled_features()
-        assert features == []
+        assert "memory" in features
+        # multi_agent and external_providers should be disabled by default
+        assert "multi_agent" not in features
+        assert "external_providers" not in features
 
     @patch("app.utils.features.settings")
     def test_multi_agent_enabled_via_settings(self, mock_settings):

@@ -1,8 +1,10 @@
+import enum
 import secrets
 import uuid
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, String, Text, func
+from pgvector.sqlalchemy import Vector
+from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, Integer, String, Text, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
@@ -47,3 +49,25 @@ class Agent(Base):
     updated_at: Mapped[datetime] = mapped_column(
         DateTime, server_default=func.now(), onupdate=func.now()
     )
+
+
+class MemoryType(enum.Enum):
+    """Types of memories that can be stored."""
+
+    FACT = "fact"  # Extracted facts about user/context
+    PREFERENCE = "preference"  # User preferences
+    SUMMARY = "summary"  # Conversation summaries
+
+
+class Memory(Base):
+    """Semantic memory storage for conversation context."""
+
+    __tablename__ = "memories"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    app_token_id: Mapped[int] = mapped_column(Integer, ForeignKey("app_tokens.id"), index=True)
+    session_id: Mapped[str | None] = mapped_column(String(100), nullable=True, index=True)
+    content: Mapped[str] = mapped_column(Text)
+    embedding: Mapped[list[float]] = mapped_column(Vector(384))  # nomic-embed-text dimension
+    memory_type: Mapped[MemoryType] = mapped_column(Enum(MemoryType), default=MemoryType.FACT)
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
