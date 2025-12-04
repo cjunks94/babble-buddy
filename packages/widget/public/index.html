@@ -96,15 +96,17 @@
     </div>
 
     <script src="/babble-buddy.umd.cjs"></script>
+    <!-- Config injected at runtime from env vars -->
+    <script src="/config.js"></script>
     <script>
-      // Configure these for your deployment
+      // Use injected config or defaults
       const config = {
-        appToken: 'DEMO_TOKEN',
-        apiUrl: 'http://localhost:8000',
-        greeting: 'Hi! I\'m Babble Buddy. This is a demo - connect me to your Agent Core to chat!',
+        appToken: window.BABBLE_BUDDY_TOKEN || 'demo-token',
+        apiUrl: window.BABBLE_BUDDY_API_URL || 'http://localhost:8000',
+        greeting: window.BABBLE_BUDDY_GREETING || 'Hi! How can I help you today?',
       };
 
-      // Check URL params for config override
+      // Allow URL params to override (for testing)
       const params = new URLSearchParams(window.location.search);
       if (params.get('token')) config.appToken = params.get('token');
       if (params.get('api')) config.apiUrl = params.get('api');
