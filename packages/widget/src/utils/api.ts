@@ -64,13 +64,15 @@ export class ApiClient {
           continue;
         }
         if (line.startsWith('data: ')) {
-          const data = line.slice(6).trim();
-          if (data === '') continue;
+          const data = line.slice(6);
+          const trimmed = data.trim();
+          if (trimmed === '') continue;
 
           // Check if this is the final "done" event with session_id (UUID format)
-          if (data.startsWith('bb_') || /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(data)) {
-            yield { type: 'done', data };
+          if (trimmed.startsWith('bb_') || /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(trimmed)) {
+            yield { type: 'done', data: trimmed };
           } else {
+            // Preserve original spacing for content chunks
             yield { type: 'chunk', data };
           }
         }
