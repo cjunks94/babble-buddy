@@ -27,11 +27,25 @@ An embeddable AI chatbot agent (like Clippy) that connects to self-hosted AI bac
 | Service | Description | Directory |
 |---------|-------------|-----------|
 | **Agent Core** | Python FastAPI backend for AI interactions | `services/agent-core/` |
+| **Ollama** | Self-hosted LLM inference server | `services/ollama/` |
 | **Widget** | Embeddable TypeScript chat widget | `packages/widget/` |
 
 ## Quick Start (Local)
 
-### 1. Start Agent Core
+### 1. Start Ollama
+
+```bash
+# Option A: Use local Ollama
+ollama serve
+ollama pull llama3.2
+
+# Option B: Use Docker
+cd services/ollama
+docker build -t babble-ollama .
+docker run -p 11434:11434 babble-ollama
+```
+
+### 2. Start Agent Core
 
 ```bash
 cd services/agent-core
@@ -39,7 +53,7 @@ cp .env.example .env
 docker-compose up -d
 ```
 
-### 2. Create an App Token
+### 3. Create an App Token
 
 ```bash
 curl -X POST http://localhost:8000/api/v1/admin/tokens \
@@ -48,7 +62,7 @@ curl -X POST http://localhost:8000/api/v1/admin/tokens \
   -d '{"name": "my-app"}'
 ```
 
-### 3. Start Widget Dev Server
+### 4. Start Widget Dev Server
 
 ```bash
 cd packages/widget
@@ -56,59 +70,91 @@ npm install
 npm run dev
 ```
 
-### 4. Test
+### 5. Test
 
 Open `http://localhost:5173` and chat!
 
+---
+
 ## Deploy to Railway
 
-### Option 1: One-Click Deploy
+### Step 1: Create Project & Database
 
-[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/template/babble-buddy)
+1. Go to [railway.app](https://railway.app) → **New Project**
+2. Click **New** → **Database** → **PostgreSQL**
 
-### Option 2: Manual Deploy
+### Step 2: Deploy Ollama
 
-1. **Create a new Railway project**
+1. Click **New** → **GitHub Repo** → Select `babble-buddy`
+2. Set **Root Directory**: `services/ollama`
+3. Set environment variable:
+   - `OLLAMA_MODEL` = `llama3.2` (or your preferred model)
+4. **Add a Volume** (recommended):
+   - Go to Settings → Volumes
+   - Mount path: `/root/.ollama`
+   - This persists models between deploys
+5. Wait for deploy (first time takes 3-5 min to pull model)
+6. Copy the Ollama service URL (e.g., `https://ollama-xxx.railway.app`)
 
-2. **Add PostgreSQL**
-   - Click "New" → "Database" → "PostgreSQL"
+### Step 3: Deploy Agent Core
 
-3. **Deploy Agent Core**
-   - Click "New" → "GitHub Repo" → Select this repo
-   - Set **Root Directory**: `services/agent-core`
-   - Add environment variables:
-     ```
-     DATABASE_URL=${{Postgres.DATABASE_URL}}
-     OLLAMA_HOST=https://your-ollama-instance.com
-     ADMIN_API_KEY=your-secure-admin-key
-     ```
+1. Click **New** → **GitHub Repo** → Select `babble-buddy`
+2. Set **Root Directory**: `services/agent-core`
+3. Set environment variables:
+   ```
+   DATABASE_URL=${{Postgres.DATABASE_URL}}
+   OLLAMA_HOST=https://ollama-xxx.railway.app  (from step 2)
+   ADMIN_API_KEY=your-secure-random-key
+   ```
+4. Copy the Agent Core URL (e.g., `https://agent-core-xxx.railway.app`)
 
-4. **Deploy Widget** (optional - for hosting demo)
-   - Click "New" → "GitHub Repo" → Select this repo
-   - Set **Root Directory**: `packages/widget`
+### Step 4: Deploy Widget (Optional Demo)
 
-5. **Connect Ollama**
-   - Deploy Ollama separately or use an existing instance
-   - Set `OLLAMA_HOST` in Agent Core to point to it
+1. Click **New** → **GitHub Repo** → Select `babble-buddy`
+2. Set **Root Directory**: `packages/widget`
+3. This hosts a demo page where you can test the widget
 
-### Environment Variables (Agent Core)
+### Step 5: Create App Token
 
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `DATABASE_URL` | Yes | PostgreSQL connection string |
-| `OLLAMA_HOST` | Yes | Ollama API endpoint |
-| `OLLAMA_MODEL` | No | Model name (default: `llama3.2`) |
-| `ADMIN_API_KEY` | Yes | Admin key for token management |
-| `RATE_LIMIT_PER_MINUTE` | No | Rate limit per token (default: `60`) |
+```bash
+curl -X POST https://agent-core-xxx.railway.app/api/v1/admin/tokens \
+  -H "Authorization: Bearer your-secure-random-key" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "my-app", "description": "My first app"}'
+```
+
+Save the returned token (starts with `bb_`).
+
+---
+
+## Environment Variables
+
+### Agent Core
+
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `DATABASE_URL` | Yes | - | PostgreSQL connection string |
+| `OLLAMA_HOST` | Yes | `http://localhost:11434` | Ollama API endpoint |
+| `OLLAMA_MODEL` | No | `llama3.2` | Model to use |
+| `ADMIN_API_KEY` | Yes | - | Admin key for token management |
+| `RATE_LIMIT_PER_MINUTE` | No | `60` | Rate limit per token |
+
+### Ollama
+
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `OLLAMA_MODEL` | No | `llama3.2` | Model to pull on startup |
+
+---
 
 ## Embed the Widget
 
 ```html
-<script src="https://your-widget-url.com/babble-buddy.umd.cjs"></script>
+<script src="https://your-widget.railway.app/babble-buddy.umd.cjs"></script>
 <script>
   BabbleBuddy.init({
     appToken: 'bb_your_token_here',
-    apiUrl: 'https://your-agent-core-url.railway.app',
+    apiUrl: 'https://your-agent-core.railway.app',
     context: {
       app: 'my-app',
       instructions: 'Help users with their questions'
@@ -117,9 +163,44 @@ Open `http://localhost:5173` and chat!
 </script>
 ```
 
+### Configuration Options
+
+```javascript
+BabbleBuddy.init({
+  // Required
+  appToken: 'bb_xxx',
+  apiUrl: 'https://agent-core.railway.app',
+
+  // Optional
+  position: 'bottom-right',  // bottom-left, top-right, top-left
+  greeting: 'Hi! How can I help?',
+  context: {
+    app: 'exportee',
+    schema: ['users', 'orders'],
+    instructions: 'Help users build SQL queries'
+  },
+  theme: {
+    primaryColor: '#6366f1',
+    backgroundColor: '#ffffff',
+    textColor: '#1f2937'
+  }
+});
+```
+
+---
+
 ## API Reference
 
 See [Agent Core README](services/agent-core/README.md) for full API documentation.
+
+## Recommended Models
+
+| Model | Size | Best For |
+|-------|------|----------|
+| `llama3.2` | 2GB | General purpose, good default |
+| `llama3.2:1b` | 1.3GB | Faster responses, lower memory |
+| `codellama` | 3.8GB | Code generation, SQL help |
+| `mistral` | 4.1GB | Strong reasoning |
 
 ## License
 
