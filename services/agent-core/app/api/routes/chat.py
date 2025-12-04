@@ -13,7 +13,7 @@ from app.core.memory import (
 from app.core.prompts import build_system_prompt
 from app.core.rate_limit import limiter
 from app.core.sessions import session_manager
-from app.db.database import async_session
+from app.db.database import async_session, pgvector_available
 from app.db.models import AppToken
 from app.providers.ollama import ollama_provider
 
@@ -48,19 +48,22 @@ async def chat(
     history = [{"role": m.role, "content": m.content} for m in session.messages]
     system_prompt = build_system_prompt(session.context, body.style)
 
-    # Recall relevant memories and augment prompt
-    if settings.feature_memory:
-        async with async_session() as db:
-            memory_service = MemoryService(db)
-            memories = await memory_service.recall(
-                app_token_id=token.id,
-                query=body.message,
-                limit=settings.memory_recall_limit,
-                min_similarity=settings.memory_min_similarity,
-            )
-            if memories:
-                memory_context = format_memories_for_prompt(memories)
-                system_prompt = augment_system_prompt(system_prompt, memory_context)
+    # Recall relevant memories and augment prompt (if pgvector available)
+    if settings.feature_memory and pgvector_available:
+        try:
+            async with async_session() as db:
+                memory_service = MemoryService(db)
+                memories = await memory_service.recall(
+                    app_token_id=token.id,
+                    query=body.message,
+                    limit=settings.memory_recall_limit,
+                    min_similarity=settings.memory_min_similarity,
+                )
+                if memories:
+                    memory_context = format_memories_for_prompt(memories)
+                    system_prompt = augment_system_prompt(system_prompt, memory_context)
+        except Exception:
+            pass  # Memory recall failed, continue without it
 
     log_chat(session.id, len(body.message), "ollama")
 
@@ -92,19 +95,22 @@ async def chat_stream(
     history = [{"role": m.role, "content": m.content} for m in session.messages]
     system_prompt = build_system_prompt(session.context, body.style)
 
-    # Recall relevant memories and augment prompt
-    if settings.feature_memory:
-        async with async_session() as db:
-            memory_service = MemoryService(db)
-            memories = await memory_service.recall(
-                app_token_id=token.id,
-                query=body.message,
-                limit=settings.memory_recall_limit,
-                min_similarity=settings.memory_min_similarity,
-            )
-            if memories:
-                memory_context = format_memories_for_prompt(memories)
-                system_prompt = augment_system_prompt(system_prompt, memory_context)
+    # Recall relevant memories and augment prompt (if pgvector available)
+    if settings.feature_memory and pgvector_available:
+        try:
+            async with async_session() as db:
+                memory_service = MemoryService(db)
+                memories = await memory_service.recall(
+                    app_token_id=token.id,
+                    query=body.message,
+                    limit=settings.memory_recall_limit,
+                    min_similarity=settings.memory_min_similarity,
+                )
+                if memories:
+                    memory_context = format_memories_for_prompt(memories)
+                    system_prompt = augment_system_prompt(system_prompt, memory_context)
+        except Exception:
+            pass  # Memory recall failed, continue without it
 
     log_chat(session.id, len(body.message), "ollama")
 

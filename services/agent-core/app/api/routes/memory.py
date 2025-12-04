@@ -6,7 +6,7 @@ from pydantic import BaseModel
 from app.config import settings
 from app.core.auth import get_current_token
 from app.core.memory import MemoryService, format_memories_for_prompt
-from app.db.database import async_session
+from app.db.database import async_session, pgvector_available
 from app.db.models import AppToken, MemoryType
 
 router = APIRouter()
@@ -49,6 +49,8 @@ async def store_memory(
     """Store a new memory (fact, preference, or summary)."""
     if not settings.feature_memory:
         raise HTTPException(status_code=403, detail="Memory feature is disabled")
+    if not pgvector_available:
+        raise HTTPException(status_code=503, detail="Memory unavailable (pgvector not installed)")
 
     # Validate memory type
     try:
@@ -83,6 +85,8 @@ async def search_memories(
     """Search memories by semantic similarity."""
     if not settings.feature_memory:
         raise HTTPException(status_code=403, detail="Memory feature is disabled")
+    if not pgvector_available:
+        raise HTTPException(status_code=503, detail="Memory unavailable (pgvector not installed)")
 
     async with async_session() as db:
         memory_service = MemoryService(db)
@@ -117,6 +121,8 @@ async def clear_memories(
     """Clear all memories for this app token, optionally filtered by session."""
     if not settings.feature_memory:
         raise HTTPException(status_code=403, detail="Memory feature is disabled")
+    if not pgvector_available:
+        raise HTTPException(status_code=503, detail="Memory unavailable (pgvector not installed)")
 
     async with async_session() as db:
         memory_service = MemoryService(db)
