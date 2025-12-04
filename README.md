@@ -2,6 +2,13 @@
 
 An embeddable AI chatbot agent (like Clippy) that connects to self-hosted AI backends.
 
+## 🚀 Live Demo
+
+Try it now!
+
+- **Demo Page**: [babble-buddy-demo.cjunker.dev](https://babble-buddy-demo.cjunker.dev)
+- **API Endpoint**: [babble-buddy-api.cjunker.dev](https://babble-buddy-api.cjunker.dev)
+
 ## Architecture
 
 ```
@@ -150,11 +157,11 @@ Save the returned token (starts with `bb_`).
 ## Embed the Widget
 
 ```html
-<script src="https://your-widget.railway.app/babble-buddy.umd.cjs"></script>
+<script src="https://babble-buddy-demo.cjunker.dev/babble-buddy.umd.cjs"></script>
 <script>
   BabbleBuddy.init({
     appToken: 'bb_your_token_here',
-    apiUrl: 'https://your-agent-core.railway.app',
+    apiUrl: 'https://babble-buddy-api.cjunker.dev',
     context: {
       app: 'my-app',
       instructions: 'Help users with their questions'
@@ -169,7 +176,7 @@ Save the returned token (starts with `bb_`).
 BabbleBuddy.init({
   // Required
   appToken: 'bb_xxx',
-  apiUrl: 'https://agent-core.railway.app',
+  apiUrl: 'https://babble-buddy-api.cjunker.dev',
 
   // Optional
   position: 'bottom-right',  // bottom-left, top-right, top-left

@@ -14,6 +14,9 @@ FROM nginx:alpine
 RUN apk add --no-cache gettext
 
 COPY --from=builder /app/dist /usr/share/nginx/html
+# Fix permissions so nginx worker can read files
+RUN chmod -R 644 /usr/share/nginx/html/* && chmod 755 /usr/share/nginx/html
+
 COPY nginx.conf.template /etc/nginx/conf.d/default.conf.template
 COPY start.sh /start.sh
 RUN chmod +x /start.sh
