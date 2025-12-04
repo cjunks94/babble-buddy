@@ -13,6 +13,8 @@ export interface BabbleBuddyTheme {
   textColor: string;
   fontFamily: string;
   borderRadius: string;
+  assistantBubbleColor?: string;
+  inputBorderColor?: string;
 }
 
 export interface Message {

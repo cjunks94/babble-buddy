@@ -8,12 +8,27 @@ export const defaultTheme: BabbleBuddyTheme = {
   borderRadius: '12px',
 };
 
+// Check if a hex color is dark
+function isDarkColor(hex: string): boolean {
+  const color = hex.replace('#', '');
+  const r = parseInt(color.substr(0, 2), 16);
+  const g = parseInt(color.substr(2, 2), 16);
+  const b = parseInt(color.substr(4, 2), 16);
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  return luminance < 0.5;
+}
+
 export function injectStyles(theme: BabbleBuddyTheme, position: string) {
   const styleId = 'babble-buddy-styles';
   // Remove existing styles to allow theme changes
   document.getElementById(styleId)?.remove();
 
   const positionStyles = getPositionStyles(position);
+
+  // Compute adaptive colors based on background
+  const isDark = isDarkColor(theme.backgroundColor);
+  const assistantBubble = theme.assistantBubbleColor || (isDark ? '#3f3f46' : '#f3f4f6');
+  const inputBorder = theme.inputBorderColor || (isDark ? '#52525b' : '#e5e7eb');
 
   const css = `
     .bb-widget {
@@ -22,6 +37,8 @@ export function injectStyles(theme: BabbleBuddyTheme, position: string) {
       --bb-text: ${theme.textColor};
       --bb-font: ${theme.fontFamily};
       --bb-radius: ${theme.borderRadius};
+      --bb-assistant-bubble: ${assistantBubble};
+      --bb-input-border: ${inputBorder};
 
       position: fixed;
       ${positionStyles}
@@ -124,7 +141,7 @@ export function injectStyles(theme: BabbleBuddyTheme, position: string) {
 
     .bb-message.bb-assistant {
       align-self: flex-start;
-      background: #f3f4f6;
+      background: var(--bb-assistant-bubble);
       color: var(--bb-text);
       border-bottom-left-radius: 4px;
     }
@@ -141,7 +158,7 @@ export function injectStyles(theme: BabbleBuddyTheme, position: string) {
 
     .bb-input-area {
       padding: 12px;
-      border-top: 1px solid #e5e7eb;
+      border-top: 1px solid var(--bb-input-border);
       display: flex;
       gap: 8px;
     }
@@ -149,12 +166,14 @@ export function injectStyles(theme: BabbleBuddyTheme, position: string) {
     .bb-input {
       flex: 1;
       padding: 10px 14px;
-      border: 1px solid #e5e7eb;
+      border: 1px solid var(--bb-input-border);
       border-radius: 20px;
       font-size: 14px;
       font-family: var(--bb-font);
       outline: none;
       transition: border-color 0.2s;
+      background: var(--bb-bg);
+      color: var(--bb-text);
     }
 
     .bb-input:focus {
@@ -162,7 +181,12 @@ export function injectStyles(theme: BabbleBuddyTheme, position: string) {
     }
 
     .bb-input:disabled {
-      background: #f9fafb;
+      opacity: 0.6;
+    }
+
+    .bb-input::placeholder {
+      color: var(--bb-text);
+      opacity: 0.5;
     }
 
     .bb-send {
@@ -220,7 +244,7 @@ export function injectStyles(theme: BabbleBuddyTheme, position: string) {
     }
 
     .bb-message .bb-inline-code {
-      background: rgba(0, 0, 0, 0.08);
+      background: rgba(128, 128, 128, 0.2);
       padding: 2px 6px;
       border-radius: 4px;
       font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
@@ -228,7 +252,7 @@ export function injectStyles(theme: BabbleBuddyTheme, position: string) {
     }
 
     .bb-message.bb-user .bb-inline-code {
-      background: rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.25);
     }
 
     .bb-message a {
