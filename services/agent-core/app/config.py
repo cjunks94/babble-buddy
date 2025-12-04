@@ -24,6 +24,13 @@ class Settings(BaseSettings):
     # Admin
     admin_api_key: str = "change-me-in-production"
 
+    # Feature flags
+    feature_multi_agent: bool = False  # Enable multi-agent orchestration
+    feature_external_providers: bool = False  # Enable Claude/OpenAI/Gemini providers
+
+    # Encryption (for API keys)
+    encryption_key: str | None = None  # Fernet key for encrypting stored API keys
+
     class Config:
         env_file = ".env"
         extra = "ignore"
