@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Babble Buddy Widget Demo</title>
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 40px 20px;
+        background: #f9fafb;
+      }
+      h1 {
+        color: #1f2937;
+      }
+      .card {
+        background: white;
+        padding: 24px;
+        border-radius: 12px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+      }
+      code {
+        background: #f3f4f6;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-size: 14px;
+      }
+      pre {
+        background: #1f2937;
+        color: #e5e7eb;
+        padding: 16px;
+        border-radius: 8px;
+        overflow-x: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Babble Buddy Widget Demo</h1>
+
+    <div class="card">
+      <h2>Instructions</h2>
+      <p>1. Start the Agent Core backend:</p>
+      <pre>cd ../services/agent-core && docker-compose up -d</pre>
+
+      <p>2. Create an app token:</p>
+      <pre>curl -X POST http://localhost:8000/api/v1/admin/tokens \
+  -H "Authorization: Bearer change-me-in-production" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "demo"}'</pre>
+
+      <p>3. Update the <code>appToken</code> below with your token</p>
+      <p>4. Click the chat bubble in the bottom-right corner!</p>
+    </div>
+
+    <div class="card">
+      <h2>Sample Content</h2>
+      <p>
+        This is a demo page showing the Babble Buddy widget. The widget appears as a
+        floating chat bubble that users can click to open a conversation with the AI
+        assistant.
+      </p>
+      <p>
+        The widget is completely self-contained and can be embedded in any web application
+        with just a single script tag and initialization call.
+      </p>
+    </div>
+
+    <script type="module" src="/src/index.ts"></script>
+    <script type="module">
+      // Wait for the module to load
+      setTimeout(() => {
+        BabbleBuddy.init({
+          appToken: 'YOUR_APP_TOKEN_HERE',
+          apiUrl: 'http://localhost:8000',
+          position: 'bottom-right',
+          greeting: 'Hi! I\'m your AI assistant. How can I help you today?',
+          context: {
+            app: 'demo',
+            instructions: 'You are a helpful assistant for a demo application.',
+          },
+        });
+      }, 100);
+    </script>
+  </body>
+</html>

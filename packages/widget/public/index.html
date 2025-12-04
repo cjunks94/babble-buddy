@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Babble Buddy Widget</title>
+    <style>
+      * { box-sizing: border-box; }
+      body {
+        font-family: system-ui, -apple-system, sans-serif;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 40px 20px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        color: white;
+      }
+      h1 { margin-bottom: 8px; }
+      .subtitle { opacity: 0.9; margin-bottom: 32px; }
+      .card {
+        background: white;
+        color: #1f2937;
+        padding: 24px;
+        border-radius: 16px;
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
+        margin-bottom: 20px;
+      }
+      .card h2 { margin-top: 0; color: #6366f1; }
+      code {
+        background: #f3f4f6;
+        padding: 2px 8px;
+        border-radius: 6px;
+        font-size: 14px;
+      }
+      pre {
+        background: #1f2937;
+        color: #e5e7eb;
+        padding: 16px;
+        border-radius: 12px;
+        overflow-x: auto;
+        font-size: 13px;
+        line-height: 1.5;
+      }
+      .highlight { color: #a5b4fc; }
+      .arrow {
+        display: inline-block;
+        animation: bounce 1s infinite;
+        font-size: 24px;
+        margin-left: 8px;
+      }
+      @keyframes bounce {
+        0%, 100% { transform: translateX(0); }
+        50% { transform: translateX(5px); }
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Babble Buddy Widget</h1>
+    <p class="subtitle">AI-powered chat widget you can embed anywhere</p>
+
+    <div class="card">
+      <h2>Try It Out <span class="arrow">→</span></h2>
+      <p>Click the chat bubble in the bottom-right corner to start a conversation!</p>
+      <p><strong>Note:</strong> Make sure the Agent Core backend is running and you've set a valid app token.</p>
+    </div>
+
+    <div class="card">
+      <h2>Embed in Your App</h2>
+      <pre>&lt;script src="<span class="highlight">YOUR_WIDGET_URL</span>/babble-buddy.umd.cjs"&gt;&lt;/script&gt;
+&lt;script&gt;
+  BabbleBuddy.init({
+    appToken: '<span class="highlight">your-app-token</span>',
+    apiUrl: '<span class="highlight">your-agent-core-url</span>',
+    context: {
+      app: 'my-app',
+      instructions: 'Help users with...'
+    }
+  });
+&lt;/script&gt;</pre>
+    </div>
+
+    <div class="card">
+      <h2>Configuration Options</h2>
+      <pre>{
+  appToken: 'required - your app token',
+  apiUrl: 'required - agent core URL',
+  position: 'bottom-right | bottom-left | top-right | top-left',
+  greeting: 'Initial message from assistant',
+  context: { /* App-specific context sent to AI */ },
+  theme: {
+    primaryColor: '#6366f1',
+    backgroundColor: '#ffffff',
+    textColor: '#1f2937'
+  }
+}</pre>
+    </div>
+
+    <script src="/babble-buddy.umd.cjs"></script>
+    <script>
+      // Configure these for your deployment
+      const config = {
+        appToken: 'DEMO_TOKEN',
+        apiUrl: 'http://localhost:8000',
+        greeting: 'Hi! I\'m Babble Buddy. This is a demo - connect me to your Agent Core to chat!',
+      };
+
+      // Check URL params for config override
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('token')) config.appToken = params.get('token');
+      if (params.get('api')) config.apiUrl = params.get('api');
+
+      BabbleBuddy.init(config);
+    </script>
+  </body>
+</html>
