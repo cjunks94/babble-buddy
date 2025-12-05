@@ -1,0 +1,61 @@
+name: Security Scan
+
+on:
+  schedule:
+    - cron: '0 0 1 * *'  # Monthly on the 1st
+  push:
+    branches: [main]
+    paths:
+      - '**/requirements*.txt'
+      - '**/pyproject.toml'
+      - '**/package*.json'
+      - '**/Dockerfile'
+  workflow_dispatch:  # Manual trigger
+
+jobs:
+  trivy-python:
+    name: Trivy - Python Dependencies
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: 'services/agent-core'
+          format: 'table'
+          severity: 'CRITICAL,HIGH'
+          exit-code: '1'
+
+  trivy-node:
+    name: Trivy - Node Dependencies
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: 'packages/widget'
+          format: 'table'
+          severity: 'CRITICAL,HIGH'
+          exit-code: '1'
+
+  trivy-docker:
+    name: Trivy - Docker Images
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Ollama image
+        run: docker build -t babble-ollama:scan services/ollama
+
+      - name: Scan Ollama image
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'babble-ollama:scan'
+          format: 'table'
+          severity: 'CRITICAL,HIGH'
+          exit-code: '1'
