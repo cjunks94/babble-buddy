@@ -1,80 +1,67 @@
 # Agent Core
 
-Centralized AI chatbot backend for Babble Buddy.
+Centralized AI chatbot backend with long-term memory for Babble Buddy widgets.
 
 ## Quick Start
 
-1. Copy environment file:
-   ```bash
-   cp .env.example .env
-   ```
+```bash
+# 1. Setup
+cp .env.example .env
 
-2. Start services:
-   ```bash
-   docker-compose up -d
-   ```
+# 2. Start services
+docker-compose up -d
 
-3. Create an app token:
-   ```bash
-   curl -X POST http://localhost:8000/api/v1/admin/tokens \
-     -H "Authorization: Bearer change-me-in-production" \
-     -H "Content-Type: application/json" \
-     -d '{"name": "my-app", "description": "My application"}'
-   ```
+# 3. Create an app token
+curl -X POST http://localhost:8000/api/v1/admin/tokens \
+  -H "Authorization: Bearer change-me-in-production" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "my-app"}'
 
-4. Send a chat message:
-   ```bash
-   curl -X POST http://localhost:8000/api/v1/chat \
-     -H "Authorization: Bearer <your-app-token>" \
-     -H "Content-Type: application/json" \
-     -d '{"message": "Hello!"}'
-   ```
+# 4. Chat!
+curl -X POST http://localhost:8000/api/v1/chat \
+  -H "Authorization: Bearer <your-app-token>" \
+  -H "Content-Type: application/json" \
+  -d '{"message": "Hello!"}'
+```
 
-## Local Development (without Docker)
-
-1. Install dependencies:
-   ```bash
-   pip install -e ".[dev]"
-   ```
-
-2. Start PostgreSQL and set `DATABASE_URL`
-
-3. Run the server:
-   ```bash
-   uvicorn app.main:app --reload
-   ```
-
-## API Endpoints
+## API Reference
 
 ### Chat
-| Endpoint | Method | Auth | Description |
-|----------|--------|------|-------------|
-| `/health` | GET | None | Health check |
-| `/api/v1/chat` | POST | App Token | Send chat message |
-| `/api/v1/chat/stream` | POST | App Token | Stream chat response (SSE) |
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/health` | GET | Health check + cache stats |
+| `/api/v1/chat` | POST | Send message |
+| `/api/v1/chat/stream` | POST | Stream response (SSE) |
 
-### Memory (requires pgvector)
-| Endpoint | Method | Auth | Description |
-|----------|--------|------|-------------|
-| `/api/v1/memory` | POST | App Token | Store a memory (fact/preference/summary) |
-| `/api/v1/memory/search` | POST | App Token | Search memories by semantic similarity |
-| `/api/v1/memory` | DELETE | App Token | Clear memories |
+### Memory
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/v1/memory` | POST | Store a memory |
+| `/api/v1/memory/search` | POST | Search by similarity |
+| `/api/v1/memory` | DELETE | Clear memories |
+
+### Suggestions
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/v1/suggestions` | POST | Get context-aware prompts |
 
 ### Admin
-| Endpoint | Method | Auth | Description |
-|----------|--------|------|-------------|
-| `/api/v1/admin/tokens` | POST | Admin Key | Create app token |
-| `/api/v1/admin/tokens` | GET | Admin Key | List app tokens |
-| `/api/v1/admin/tokens/{id}` | DELETE | Admin Key | Revoke app token |
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/v1/admin/tokens` | POST | Create app token |
+| `/api/v1/admin/tokens` | GET | List tokens |
+| `/api/v1/admin/tokens/{id}` | DELETE | Revoke token |
+| `/api/v1/admin/extraction/status` | GET | Pending extraction count |
+| `/api/v1/admin/extraction/run` | POST | Trigger batch extraction |
 
 ## Authentication
 
-**App Token** - Used by your apps to access chat/memory:
+**App Token** — For chat/memory endpoints:
 ```bash
 curl -H "Authorization: Bearer bb_your-app-token" ...
 ```
 
-**Admin Key** - Used to manage app tokens (set via `ADMIN_API_KEY` env var):
+**Admin Key** — For token management (set via `ADMIN_API_KEY`):
 ```bash
 curl -H "Authorization: Bearer your-admin-key" ...
 ```
@@ -83,74 +70,76 @@ curl -H "Authorization: Bearer your-admin-key" ...
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `DATABASE_URL` | `postgresql+asyncpg://...` | PostgreSQL connection string |
+| **Core** |||
+| `DATABASE_URL` | — | PostgreSQL connection string |
 | `OLLAMA_HOST` | `http://localhost:11434` | Ollama API endpoint |
-| `OLLAMA_MODEL` | `llama3.2` | Model to use |
-| `RATE_LIMIT_PER_MINUTE` | `60` | Rate limit per token |
-| `ADMIN_API_KEY` | `change-me-in-production` | Admin API key for token management |
-| `FEATURE_MEMORY` | `true` | Enable semantic memory |
-| `MEMORY_EMBEDDING_MODEL` | `nomic-embed-text` | Ollama embedding model |
-| `MEMORY_RECALL_LIMIT` | `5` | Max memories to inject per request |
-| `MEMORY_MIN_SIMILARITY` | `0.6` | Minimum similarity threshold |
+| `OLLAMA_MODEL` | `llama3.2` | Chat model |
+| `RATE_LIMIT_PER_MINUTE` | `60` | Requests per token per minute |
+| `ADMIN_API_KEY` | `change-me-in-production` | Admin authentication |
+| **Memory** |||
+| `FEATURE_MEMORY` | `true` | Enable memory system |
+| `MEMORY_EMBEDDING_MODEL` | `nomic-embed-text` | Embedding model |
+| `MEMORY_RECALL_LIMIT` | `5` | Max memories per request |
+| `MEMORY_MIN_SIMILARITY` | `0.6` | Similarity threshold (0-1) |
+| **Structured Extraction** |||
+| `MEMORY_EXTRACTION_ENABLED` | `true` | Enable knowledge extraction |
+| `MEMORY_EXTRACTION_INLINE` | `true` | Extract per-message (vs batch) |
+| `MEMORY_EXTRACTION_MODEL` | `llama3.2` | Extraction model |
+| `MEMORY_HIGH_IMPORTANCE_THRESHOLD` | `0.9` | Auto-inject threshold |
+| `MEMORY_EXTRACTION_BATCH_SIZE` | `50` | Turns per batch job |
+| **Performance** |||
+| `MEMORY_EMBEDDING_CACHE_SIZE` | `10000` | LRU cache entries |
+| `MEMORY_EMBEDDING_CACHE_TTL` | `3600` | Cache TTL (seconds) |
 
-## Memory Feature
+## Features
 
-The memory system stores conversation context and recalls relevant information automatically.
+### Memory System
+
+Stores conversation context and recalls relevant information automatically.
 
 **Requirements:**
-- PostgreSQL with pgvector extension (`CREATE EXTENSION vector;`)
-- Ollama with `nomic-embed-text` model (`ollama pull nomic-embed-text`)
+- PostgreSQL with pgvector (`CREATE EXTENSION vector;`)
+- Ollama with `nomic-embed-text` (`ollama pull nomic-embed-text`)
 
 **How it works:**
-1. On each chat request, relevant memories are recalled via semantic search
-2. Memories are injected into the system prompt as context
-3. Apps can store facts/preferences via the `/api/v1/memory` endpoint
+1. On each request, relevant memories are recalled via semantic search
+2. Memories are injected into the system prompt
+3. Apps can store facts via `/api/v1/memory`
 
-If pgvector is not available, the app starts normally with memory disabled.
+If pgvector is unavailable, the app starts with memory disabled.
 
-## Structured Memory Extraction
+### Structured Extraction
 
-Beyond basic vector storage, the system supports **structured memory extraction** - a knowledge graph approach that extracts atomic facts from conversations.
+Extracts knowledge graph tuples from conversations (e.g., "user is allergic to shellfish").
 
-**Features:**
-- Extracts subject/predicate/object tuples (e.g., "user hates olives")
-- Importance scoring (0.0-1.0) - critical info like allergies = 1.0
-- Automatic injection of high-importance memories
-- Expiring memories for temporary facts
-- Application grouping for multi-tenant deployments
+- **Subject/predicate/object** — Atomic facts
+- **Importance scoring** — Critical info (allergies) = 1.0, preferences ≤ 0.7
+- **Auto-injection** — High-importance memories always included
 
-**How it works:**
-1. Conversation turns are stored after each message
-2. **Inline mode (default):** Extraction runs immediately after each message - no cron needed
-3. **Batch mode:** Set `MEMORY_EXTRACTION_INLINE=false` and trigger via admin endpoint
-4. LLM extracts structured memories from conversations
-5. High-importance memories (≥0.9) are always injected into prompts
-6. Other memories are recalled via semantic search
+**Scaling:**
+| Mode | Config | Best for |
+|------|--------|----------|
+| Inline | `MEMORY_EXTRACTION_INLINE=true` | Small/medium — extracts immediately |
+| Batch | `MEMORY_EXTRACTION_INLINE=false` | Scale — use scheduled jobs |
 
-**Admin Endpoints:**
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/api/v1/admin/extraction/status` | GET | Get pending turn count |
-| `/api/v1/admin/extraction/run` | POST | Trigger batch extraction |
+### Embedding Cache
 
-**Example extraction request:**
-```bash
-curl -X POST http://localhost:8000/api/v1/admin/extraction/run \
-  -H "Authorization: Bearer $ADMIN_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"limit": 50}'
+LRU cache reduces Ollama embedding calls. Check stats via `/health`:
+
+```json
+{
+  "cache": {
+    "embedding": { "size": 142, "hits": 1893, "hit_rate": 0.93 }
+  }
+}
 ```
 
-**Scaling considerations:**
-- **Inline mode** (`MEMORY_EXTRACTION_INLINE=true`): Best for small-to-medium deployments. Extracts immediately after each message with no cron setup required.
-- **Batch mode** (`MEMORY_EXTRACTION_INLINE=false`): Preferred at scale. Queue turns and process via scheduled jobs to avoid LLM bottlenecks during peak traffic.
+## Development
 
-**Configuration:**
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `MEMORY_EXTRACTION_ENABLED` | `true` | Enable structured extraction |
-| `MEMORY_EXTRACTION_INLINE` | `true` | Extract after each message (small/med scale) |
-| `MEMORY_EXTRACTION_MODEL` | `llama3.2` | Model for extraction |
-| `MEMORY_HIGH_IMPORTANCE_THRESHOLD` | `0.9` | Always-inject threshold |
-| `MEMORY_ALWAYS_INJECT_HIGH_IMPORTANCE` | `true` | Auto-inject critical memories |
-| `MEMORY_EXTRACTION_BATCH_SIZE` | `50` | Max turns per batch (if inline=false) |
+```bash
+# Install
+pip install -e ".[dev]"
+
+# Run (requires PostgreSQL)
+uvicorn app.main:app --reload
+```
