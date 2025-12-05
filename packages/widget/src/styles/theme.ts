@@ -223,6 +223,55 @@ export function injectStyles(theme: BabbleBuddyTheme, position: string) {
       font-size: 13px;
     }
 
+    /* Suggestions */
+    .bb-suggestions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--bb-input-border);
+    }
+
+    .bb-suggestions:empty {
+      display: none;
+    }
+
+    .bb-suggestion {
+      padding: 6px 12px;
+      background: var(--bb-assistant-bubble);
+      border: 1px solid var(--bb-input-border);
+      border-radius: 16px;
+      font-size: 12px;
+      font-family: var(--bb-font);
+      color: var(--bb-text);
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s;
+    }
+
+    .bb-suggestion:hover {
+      border-color: var(--bb-primary);
+      background: var(--bb-bg);
+    }
+
+    /* Debug panel */
+    .bb-debug {
+      padding: 8px 12px;
+      background: #fef3c7;
+      border-bottom: 1px solid #fcd34d;
+      font-size: 11px;
+    }
+
+    .bb-debug-header {
+      font-weight: 600;
+      color: #92400e;
+      margin-bottom: 4px;
+    }
+
+    .bb-debug-content {
+      color: #78350f;
+      word-break: break-word;
+    }
+
     /* Markdown styles */
     .bb-message p {
       margin: 0 0 8px 0;

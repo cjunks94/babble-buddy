@@ -1,3 +1,8 @@
+export interface Suggestion {
+  label: string;
+  prompt: string;
+}
+
 export interface BabbleBuddyConfig {
   appToken: string;
   apiUrl: string;
@@ -5,6 +10,8 @@ export interface BabbleBuddyConfig {
   context?: Record<string, unknown>;
   theme?: Partial<BabbleBuddyTheme>;
   greeting?: string;
+  suggestions?: Suggestion[];  // Static suggestions (overrides API)
+  debug?: boolean;  // Show context debug panel
 }
 
 export interface BabbleBuddyTheme {

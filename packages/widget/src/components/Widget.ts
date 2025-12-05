@@ -1,4 +1,4 @@
-import type { BabbleBuddyConfig, Message } from '../types';
+import type { BabbleBuddyConfig, Message, Suggestion } from '../types';
 import { ApiClient } from '../utils/api';
 import { createStore, type Store } from '../utils/state';
 import { defaultTheme, injectStyles } from '../styles/theme';
@@ -12,6 +12,8 @@ export class Widget {
   private container: HTMLElement | null = null;
   private messagesEl: HTMLElement | null = null;
   private inputEl: HTMLInputElement | null = null;
+  private suggestions: Suggestion[] = [];
+  private contextSummary: string | null = null;
 
   constructor(config: BabbleBuddyConfig) {
     this.config = {
@@ -19,6 +21,8 @@ export class Widget {
       context: {},
       theme: {},
       greeting: 'Hi! How can I help you today?',
+      suggestions: [],
+      debug: false,
       ...config,
     };
 
@@ -49,6 +53,40 @@ export class Widget {
         timestamp: new Date(),
       });
     }
+
+    // Load suggestions
+    this.loadSuggestions();
+  }
+
+  private async loadSuggestions() {
+    // Use static suggestions if provided
+    if (this.config.suggestions && this.config.suggestions.length > 0) {
+      this.suggestions = this.config.suggestions;
+      this.renderSuggestions();
+      return;
+    }
+
+    // Fetch from API
+    try {
+      const response = await fetch(`${this.config.apiUrl}/api/v1/suggestions`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${this.config.appToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ context: this.config.context }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        this.suggestions = data.suggestions || [];
+        this.contextSummary = data.context_summary;
+        this.renderSuggestions();
+        this.renderDebugPanel();
+      }
+    } catch (error) {
+      console.warn('Failed to load suggestions:', error);
+    }
   }
 
   private render() {
@@ -68,6 +106,7 @@ export class Widget {
           ${icons.bot}
           <span>Chat Assistant</span>
         </div>
+        <div class="bb-suggestions"></div>
         <div class="bb-messages"></div>
         <div class="bb-input-area">
           <input
@@ -232,6 +271,45 @@ export class Widget {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+  }
+
+  private renderSuggestions() {
+    const container = this.container?.querySelector('.bb-suggestions');
+    if (!container || this.suggestions.length === 0) return;
+
+    container.innerHTML = this.suggestions
+      .map(
+        (s) => `<button class="bb-suggestion" data-prompt="${this.escapeHtml(s.prompt)}">${this.escapeHtml(s.label)}</button>`
+      )
+      .join('');
+
+    // Bind click handlers
+    container.querySelectorAll('.bb-suggestion').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        const prompt = (e.target as HTMLElement).getAttribute('data-prompt');
+        if (prompt && this.inputEl) {
+          this.inputEl.value = prompt;
+          this.sendMessage();
+        }
+      });
+    });
+  }
+
+  private renderDebugPanel() {
+    if (!this.config.debug || !this.contextSummary) return;
+
+    const existing = this.container?.querySelector('.bb-debug');
+    existing?.remove();
+
+    const panel = document.createElement('div');
+    panel.className = 'bb-debug';
+    panel.innerHTML = `
+      <div class="bb-debug-header">Context</div>
+      <div class="bb-debug-content">${this.escapeHtml(this.contextSummary)}</div>
+    `;
+
+    const messages = this.container?.querySelector('.bb-messages');
+    messages?.parentElement?.insertBefore(panel, messages);
   }
 
   // Public API

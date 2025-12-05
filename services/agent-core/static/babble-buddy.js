@@ -21,7 +21,7 @@ class y {
     return t.json();
   }
   async *streamMessage(e) {
-    var n;
+    var a;
     const t = await fetch(`${this.apiUrl}/api/v1/chat/stream`, {
       method: "POST",
       headers: {
@@ -32,19 +32,19 @@ class y {
     });
     if (!t.ok)
       throw new Error(`API error: ${t.status}`);
-    const o = (n = t.body) == null ? void 0 : n.getReader();
+    const o = (a = t.body) == null ? void 0 : a.getReader();
     if (!o)
       throw new Error("No response body");
     const s = new TextDecoder();
-    let a = "";
+    let n = "";
     for (; ; ) {
-      const { done: b, value: c } = await o.read();
+      const { done: b, value: d } = await o.read();
       if (b) break;
-      a += s.decode(c, { stream: !0 });
-      const d = a.split(`
+      n += s.decode(d, { stream: !0 });
+      const c = n.split(`
 `);
-      a = d.pop() || "";
-      for (const h of d)
+      n = c.pop() || "";
+      for (const h of c)
         if (!h.startsWith("event: ") && h.startsWith("data: ")) {
           const u = h.slice(6), g = u.trim();
           if (g === "") continue;
@@ -53,7 +53,7 @@ class y {
     }
   }
 }
-function w(r) {
+function v(r) {
   let e = r;
   const t = /* @__PURE__ */ new Set();
   return {
@@ -70,7 +70,7 @@ function w(r) {
       s.length > 0 && (s[s.length - 1] = {
         ...s[s.length - 1],
         content: o
-      }, e = { ...e, messages: s }, t.forEach((a) => a()));
+      }, e = { ...e, messages: s }, t.forEach((n) => n()));
     },
     finishStreaming: () => {
       const o = [...e.messages];
@@ -81,7 +81,7 @@ function w(r) {
     }
   };
 }
-const v = {
+const w = {
   primaryColor: "#0f172a",
   backgroundColor: "#ffffff",
   textColor: "#1e293b",
@@ -93,18 +93,18 @@ function k(r) {
   return (0.299 * t + 0.587 * o + 0.114 * s) / 255 < 0.5;
 }
 function S(r, e) {
-  var d;
+  var c;
   const t = "babble-buddy-styles";
-  (d = document.getElementById(t)) == null || d.remove();
-  const o = E(e), s = k(r.backgroundColor), a = r.assistantBubbleColor || (s ? "#3f3f46" : "#f3f4f6"), n = r.inputBorderColor || (s ? "#52525b" : "#e5e7eb"), b = `
+  (c = document.getElementById(t)) == null || c.remove();
+  const o = E(e), s = k(r.backgroundColor), n = r.assistantBubbleColor || (s ? "#3f3f46" : "#f3f4f6"), a = r.inputBorderColor || (s ? "#52525b" : "#e5e7eb"), b = `
     .bb-widget {
       --bb-primary: ${r.primaryColor};
       --bb-bg: ${r.backgroundColor};
       --bb-text: ${r.textColor};
       --bb-font: ${r.fontFamily};
       --bb-radius: ${r.borderRadius};
-      --bb-assistant-bubble: ${a};
-      --bb-input-border: ${n};
+      --bb-assistant-bubble: ${n};
+      --bb-input-border: ${a};
 
       position: fixed;
       ${o}
@@ -289,6 +289,55 @@ function S(r, e) {
       font-size: 13px;
     }
 
+    /* Suggestions */
+    .bb-suggestions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--bb-input-border);
+    }
+
+    .bb-suggestions:empty {
+      display: none;
+    }
+
+    .bb-suggestion {
+      padding: 6px 12px;
+      background: var(--bb-assistant-bubble);
+      border: 1px solid var(--bb-input-border);
+      border-radius: 16px;
+      font-size: 12px;
+      font-family: var(--bb-font);
+      color: var(--bb-text);
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s;
+    }
+
+    .bb-suggestion:hover {
+      border-color: var(--bb-primary);
+      background: var(--bb-bg);
+    }
+
+    /* Debug panel */
+    .bb-debug {
+      padding: 8px 12px;
+      background: #fef3c7;
+      border-bottom: 1px solid #fcd34d;
+      font-size: 11px;
+    }
+
+    .bb-debug-header {
+      font-weight: 600;
+      color: #92400e;
+      margin-bottom: 4px;
+    }
+
+    .bb-debug-content {
+      color: #78350f;
+      word-break: break-word;
+    }
+
     /* Markdown styles */
     .bb-message p {
       margin: 0 0 8px 0;
@@ -378,8 +427,8 @@ function S(r, e) {
     .bb-message em {
       font-style: italic;
     }
-  `, c = document.createElement("style");
-  c.id = t, c.textContent = b, document.head.appendChild(c);
+  `, d = document.createElement("style");
+  d.id = t, d.textContent = b, document.head.appendChild(d);
 }
 function E(r) {
   switch (r) {
@@ -411,12 +460,12 @@ const p = {
 function $(r) {
   let e = r.replace(/`\s*`\s*`/g, "```").replace(/`{3,}/g, "```");
   const t = [];
-  let o = e.replace(/```(\w*)\n?([\s\S]*?)```/g, (a, n, b) => {
-    const c = t.length, d = n ? `<div class="bb-code-lang">${n}</div>` : "";
-    return t.push(`${d}<pre class="bb-code-block"><code>${m(b.trim())}</code></pre>`), `__CODE_BLOCK_${c}__`;
+  let o = e.replace(/```(\w*)\n?([\s\S]*?)```/g, (n, a, b) => {
+    const d = t.length, c = a ? `<div class="bb-code-lang">${a}</div>` : "";
+    return t.push(`${c}<pre class="bb-code-block"><code>${m(b.trim())}</code></pre>`), `__CODE_BLOCK_${d}__`;
   }), s = m(o);
-  return t.forEach((a, n) => {
-    s = s.replace(`__CODE_BLOCK_${n}__`, a);
+  return t.forEach((n, a) => {
+    s = s.replace(`__CODE_BLOCK_${a}__`, n);
   }), s = s.replace(/^### (.+)$/gm, '<strong class="bb-h3">$1</strong>'), s = s.replace(/^## (.+)$/gm, '<strong class="bb-h2">$1</strong>'), s = s.replace(/^# (.+)$/gm, '<strong class="bb-h1">$1</strong>'), s = s.replace(/`([^`]+)`/g, '<code class="bb-inline-code">$1</code>'), s = s.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>"), s = s.replace(new RegExp("(?<!\\*)\\*([^*]+)\\*(?!\\*)", "g"), "<em>$1</em>"), s = s.replace(new RegExp("(?<!_)_([^_]+)_(?!_)", "g"), "<em>$1</em>"), s = s.replace(
     /\[([^\]]+)\]\(([^)]+)\)/g,
     '<a href="$2" target="_blank" rel="noopener">$1</a>'
@@ -440,13 +489,17 @@ class M {
     l(this, "container", null);
     l(this, "messagesEl", null);
     l(this, "inputEl", null);
+    l(this, "suggestions", []);
+    l(this, "contextSummary", null);
     this.config = {
       position: "bottom-right",
       context: {},
       theme: {},
       greeting: "Hi! How can I help you today?",
+      suggestions: [],
+      debug: !1,
       ...e
-    }, this.api = new y(e.apiUrl, e.appToken), this.store = w({
+    }, this.api = new y(e.apiUrl, e.appToken), this.store = v({
       isOpen: !1,
       isLoading: !1,
       messages: [],
@@ -455,13 +508,35 @@ class M {
     }), this.init();
   }
   init() {
-    const e = { ...v, ...this.config.theme };
+    const e = { ...w, ...this.config.theme };
     S(e, this.config.position), this.render(), this.store.subscribe(() => this.update()), this.config.greeting && this.store.addMessage({
       id: "greeting",
       role: "assistant",
       content: this.config.greeting,
       timestamp: /* @__PURE__ */ new Date()
-    });
+    }), this.loadSuggestions();
+  }
+  async loadSuggestions() {
+    if (this.config.suggestions && this.config.suggestions.length > 0) {
+      this.suggestions = this.config.suggestions, this.renderSuggestions();
+      return;
+    }
+    try {
+      const e = await fetch(`${this.config.apiUrl}/api/v1/suggestions`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${this.config.appToken}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ context: this.config.context })
+      });
+      if (e.ok) {
+        const t = await e.json();
+        this.suggestions = t.suggestions || [], this.contextSummary = t.context_summary, this.renderSuggestions(), this.renderDebugPanel();
+      }
+    } catch (e) {
+      console.warn("Failed to load suggestions:", e);
+    }
   }
   render() {
     this.container = document.createElement("div"), this.container.className = "bb-widget", this.container.innerHTML = this.getHTML(), document.body.appendChild(this.container), this.bindEvents(), this.messagesEl = this.container.querySelector(".bb-messages"), this.inputEl = this.container.querySelector(".bb-input");
@@ -473,6 +548,7 @@ class M {
           ${p.bot}
           <span>Chat Assistant</span>
         </div>
+        <div class="bb-suggestions"></div>
         <div class="bb-messages"></div>
         <div class="bb-input-area">
           <input
@@ -492,8 +568,8 @@ class M {
     `;
   }
   bindEvents() {
-    var s, a, n;
-    const e = (s = this.container) == null ? void 0 : s.querySelector(".bb-toggle"), t = (a = this.container) == null ? void 0 : a.querySelector(".bb-send"), o = (n = this.container) == null ? void 0 : n.querySelector(".bb-input");
+    var s, n, a;
+    const e = (s = this.container) == null ? void 0 : s.querySelector(".bb-toggle"), t = (n = this.container) == null ? void 0 : n.querySelector(".bb-send"), o = (a = this.container) == null ? void 0 : a.querySelector(".bb-input");
     e == null || e.addEventListener("click", () => this.toggle()), t == null || t.addEventListener("click", () => this.sendMessage()), o == null || o.addEventListener("keydown", (b) => {
       b.key === "Enter" && !b.shiftKey && (b.preventDefault(), this.sendMessage());
     });
@@ -503,10 +579,10 @@ class M {
     this.store.setState({ isOpen: !e });
   }
   update() {
-    var a, n, b;
-    const e = this.store.getState(), t = (a = this.container) == null ? void 0 : a.querySelector(".bb-chat");
+    var n, a, b;
+    const e = this.store.getState(), t = (n = this.container) == null ? void 0 : n.querySelector(".bb-chat");
     t == null || t.classList.toggle("bb-open", e.isOpen);
-    const o = (n = this.container) == null ? void 0 : n.querySelector(".bb-toggle");
+    const o = (a = this.container) == null ? void 0 : a.querySelector(".bb-toggle");
     o && (o.innerHTML = e.isOpen ? p.close : p.chat), this.renderMessages(e.messages), this.inputEl && (this.inputEl.disabled = e.isLoading);
     const s = (b = this.container) == null ? void 0 : b.querySelector(".bb-send");
     s && (s.disabled = e.isLoading), this.renderError(e.error);
@@ -524,8 +600,8 @@ class M {
     var o, s;
     const t = (o = this.container) == null ? void 0 : o.querySelector(".bb-error");
     if (t == null || t.remove(), e && this.messagesEl) {
-      const a = document.createElement("div");
-      a.className = "bb-error", a.textContent = e, (s = this.messagesEl.parentElement) == null || s.insertBefore(a, this.messagesEl.nextSibling);
+      const n = document.createElement("div");
+      n.className = "bb-error", n.textContent = e, (s = this.messagesEl.parentElement) == null || s.insertBefore(n, this.messagesEl.nextSibling);
     }
   }
   async sendMessage() {
@@ -550,27 +626,52 @@ class M {
     };
     this.store.addMessage(s);
     try {
-      const { sessionId: a } = this.store.getState();
-      let n = "";
+      const { sessionId: n } = this.store.getState();
+      let a = "";
       for await (const b of this.api.streamMessage({
         message: t,
-        session_id: a || void 0,
+        session_id: n || void 0,
         context: this.config.context
       }))
-        b.type === "chunk" ? (n += b.data, this.store.updateLastMessage(n)) : b.type === "done" && this.store.setState({ sessionId: b.data });
+        b.type === "chunk" ? (a += b.data, this.store.updateLastMessage(a)) : b.type === "done" && this.store.setState({ sessionId: b.data });
       this.store.finishStreaming();
-    } catch (a) {
+    } catch (n) {
       this.store.setState({
-        error: a instanceof Error ? a.message : "Failed to send message",
+        error: n instanceof Error ? n.message : "Failed to send message",
         isLoading: !1
       });
-      const n = this.store.getState().messages.slice(0, -1);
-      this.store.setState({ messages: n });
+      const a = this.store.getState().messages.slice(0, -1);
+      this.store.setState({ messages: a });
     }
   }
   escapeHtml(e) {
     const t = document.createElement("div");
     return t.textContent = e, t.innerHTML;
+  }
+  renderSuggestions() {
+    var t;
+    const e = (t = this.container) == null ? void 0 : t.querySelector(".bb-suggestions");
+    !e || this.suggestions.length === 0 || (e.innerHTML = this.suggestions.map(
+      (o) => `<button class="bb-suggestion" data-prompt="${this.escapeHtml(o.prompt)}">${this.escapeHtml(o.label)}</button>`
+    ).join(""), e.querySelectorAll(".bb-suggestion").forEach((o) => {
+      o.addEventListener("click", (s) => {
+        const n = s.target.getAttribute("data-prompt");
+        n && this.inputEl && (this.inputEl.value = n, this.sendMessage());
+      });
+    }));
+  }
+  renderDebugPanel() {
+    var s, n, a;
+    if (!this.config.debug || !this.contextSummary) return;
+    const e = (s = this.container) == null ? void 0 : s.querySelector(".bb-debug");
+    e == null || e.remove();
+    const t = document.createElement("div");
+    t.className = "bb-debug", t.innerHTML = `
+      <div class="bb-debug-header">Context</div>
+      <div class="bb-debug-content">${this.escapeHtml(this.contextSummary)}</div>
+    `;
+    const o = (n = this.container) == null ? void 0 : n.querySelector(".bb-messages");
+    (a = o == null ? void 0 : o.parentElement) == null || a.insertBefore(t, o);
   }
   // Public API
   open() {
