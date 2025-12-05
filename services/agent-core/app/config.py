@@ -45,6 +45,8 @@ class Settings(BaseSettings):
     memory_embedding_model: str = "nomic-embed-text"  # Ollama embedding model
     memory_recall_limit: int = 5  # Max memories to inject per request
     memory_min_similarity: float = 0.6  # Minimum similarity threshold
+    memory_embedding_cache_size: int = 10000  # LRU cache size for embeddings
+    memory_embedding_cache_ttl: int = 3600  # Cache TTL in seconds (1 hour)
 
     # Structured memory settings (knowledge graph)
     memory_extraction_enabled: bool = True  # Enable structured memory extraction

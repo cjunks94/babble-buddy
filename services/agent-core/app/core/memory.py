@@ -1,6 +1,9 @@
 """Lightweight memory system for conversation context."""
 
+import hashlib
+import time
 from datetime import datetime
+from threading import Lock
 
 import httpx
 from sqlalchemy import and_, or_, select
@@ -10,11 +13,87 @@ from app.config import settings
 from app.db.models import Memory, MemoryType, StructuredMemory
 
 
-async def generate_embedding(content: str) -> list[float]:
+class EmbeddingCache:
+    """Thread-safe LRU cache with TTL for embeddings."""
+
+    def __init__(self, max_size: int = 10000, ttl_seconds: int = 3600):
+        self.max_size = max_size
+        self.ttl = ttl_seconds
+        self.cache: dict[str, tuple[list[float], float]] = {}  # hash -> (embedding, timestamp)
+        self.access_order: list[str] = []  # For LRU eviction
+        self.lock = Lock()
+        self.hits = 0
+        self.misses = 0
+
+    def _hash_content(self, content: str) -> str:
+        """Create a hash key for content."""
+        return hashlib.sha256(content.encode()).hexdigest()[:16]
+
+    def get(self, content: str) -> list[float] | None:
+        """Get embedding from cache if exists and not expired."""
+        key = self._hash_content(content)
+        with self.lock:
+            if key in self.cache:
+                embedding, timestamp = self.cache[key]
+                if time.time() - timestamp < self.ttl:
+                    # Move to end for LRU
+                    self.access_order.remove(key)
+                    self.access_order.append(key)
+                    self.hits += 1
+                    return embedding
+                else:
+                    # Expired
+                    del self.cache[key]
+                    self.access_order.remove(key)
+            self.misses += 1
+            return None
+
+    def set(self, content: str, embedding: list[float]) -> None:
+        """Store embedding in cache."""
+        key = self._hash_content(content)
+        with self.lock:
+            # Evict oldest if at capacity
+            while len(self.cache) >= self.max_size and self.access_order:
+                oldest_key = self.access_order.pop(0)
+                self.cache.pop(oldest_key, None)
+
+            self.cache[key] = (embedding, time.time())
+            if key in self.access_order:
+                self.access_order.remove(key)
+            self.access_order.append(key)
+
+    def stats(self) -> dict:
+        """Get cache statistics."""
+        total = self.hits + self.misses
+        return {
+            "size": len(self.cache),
+            "max_size": self.max_size,
+            "hits": self.hits,
+            "misses": self.misses,
+            "hit_rate": self.hits / total if total > 0 else 0,
+        }
+
+
+# Global embedding cache
+_embedding_cache = EmbeddingCache(
+    max_size=settings.memory_embedding_cache_size,
+    ttl_seconds=settings.memory_embedding_cache_ttl,
+)
+
+
+async def generate_embedding(content: str, use_cache: bool = True) -> list[float]:
     """Generate embedding vector using Ollama's embedding endpoint.
 
     Uses nomic-embed-text model which produces 384-dimensional vectors.
+    Caches results for repeated content to reduce latency at scale.
     """
+    # Check cache first
+    if use_cache:
+        cached = _embedding_cache.get(content)
+        if cached is not None:
+            return cached
+
+    # Generate new embedding
     async with httpx.AsyncClient(timeout=30.0) as client:
         response = await client.post(
             f"{settings.ollama_host}/api/embeddings",
@@ -25,7 +104,18 @@ async def generate_embedding(content: str) -> list[float]:
         )
         response.raise_for_status()
         data = response.json()
-        return data["embedding"]
+        embedding = data["embedding"]
+
+    # Cache the result
+    if use_cache:
+        _embedding_cache.set(content, embedding)
+
+    return embedding
+
+
+def get_embedding_cache_stats() -> dict:
+    """Get embedding cache statistics for monitoring."""
+    return _embedding_cache.stats()
 
 
 class MemoryService:
