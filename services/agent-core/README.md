@@ -107,3 +107,44 @@ The memory system stores conversation context and recalls relevant information a
 3. Apps can store facts/preferences via the `/api/v1/memory` endpoint
 
 If pgvector is not available, the app starts normally with memory disabled.
+
+## Structured Memory Extraction
+
+Beyond basic vector storage, the system supports **structured memory extraction** - a knowledge graph approach that extracts atomic facts from conversations.
+
+**Features:**
+- Extracts subject/predicate/object tuples (e.g., "user hates olives")
+- Importance scoring (0.0-1.0) - critical info like allergies = 1.0
+- Automatic injection of high-importance memories
+- Expiring memories for temporary facts
+- Application grouping for multi-tenant deployments
+
+**How it works:**
+1. Conversation turns are stored in a queue
+2. Admin triggers batch extraction via `/api/v1/admin/extraction/run`
+3. LLM extracts structured memories from conversations
+4. High-importance memories (≥0.9) are always injected into prompts
+5. Other memories are recalled via semantic search
+
+**Admin Endpoints:**
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/v1/admin/extraction/status` | GET | Get pending turn count |
+| `/api/v1/admin/extraction/run` | POST | Trigger batch extraction |
+
+**Example extraction request:**
+```bash
+curl -X POST http://localhost:8000/api/v1/admin/extraction/run \
+  -H "Authorization: Bearer $ADMIN_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"limit": 50}'
+```
+
+**Configuration:**
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `MEMORY_EXTRACTION_ENABLED` | `true` | Enable structured extraction |
+| `MEMORY_EXTRACTION_MODEL` | `llama3.2` | Model for extraction |
+| `MEMORY_HIGH_IMPORTANCE_THRESHOLD` | `0.9` | Always-inject threshold |
+| `MEMORY_ALWAYS_INJECT_HIGH_IMPORTANCE` | `true` | Auto-inject critical memories |
+| `MEMORY_EXTRACTION_BATCH_SIZE` | `50` | Max turns per batch |

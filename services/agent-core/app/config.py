@@ -41,10 +41,17 @@ class Settings(BaseSettings):
     feature_external_providers: bool = False  # Enable Claude/OpenAI/Gemini providers
     feature_memory: bool = True  # Enable semantic memory for conversations
 
-    # Memory settings
+    # Memory settings (basic vector storage)
     memory_embedding_model: str = "nomic-embed-text"  # Ollama embedding model
     memory_recall_limit: int = 5  # Max memories to inject per request
     memory_min_similarity: float = 0.6  # Minimum similarity threshold
+
+    # Structured memory settings (knowledge graph)
+    memory_extraction_enabled: bool = True  # Enable structured memory extraction
+    memory_extraction_model: str = "llama3.2"  # Model for extraction (can differ from chat)
+    memory_high_importance_threshold: float = 0.9  # Importance level for critical memories
+    memory_always_inject_high_importance: bool = True  # Always inject >= threshold memories
+    memory_extraction_batch_size: int = 50  # Max turns to process per batch
 
     # Encryption (for API keys)
     encryption_key: str | None = None  # Fernet key for encrypting stored API keys

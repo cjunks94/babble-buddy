@@ -14,7 +14,7 @@ pgvector_available = False
 async def init_db():
     """Initialize database, checking for pgvector support."""
     global pgvector_available
-    from app.db.models import Base, Memory
+    from app.db.models import Base, Memory, StructuredMemory
 
     async with engine.begin() as conn:
         # Check if pgvector extension is available
@@ -25,11 +25,12 @@ async def init_db():
         except Exception as e:
             pgvector_available = False
             logger.warning(f"pgvector not available - memory feature disabled: {e}")
-            # Remove Memory table from metadata so it doesn't try to create
-            if Memory.__table__.name in Base.metadata.tables:
-                Base.metadata.remove(Memory.__table__)
+            # Remove tables with vector columns from metadata
+            for model in [Memory, StructuredMemory]:
+                if model.__table__.name in Base.metadata.tables:
+                    Base.metadata.remove(model.__table__)
 
-        # Create all tables (excluding Memory if pgvector unavailable)
+        # Create all tables (ConversationTurn works without pgvector)
         await conn.run_sync(Base.metadata.create_all)
 
 

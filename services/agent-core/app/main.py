@@ -7,7 +7,7 @@ from fastapi.staticfiles import StaticFiles
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
-from app.api.routes import chat, health, memory, suggestions, tokens
+from app.api.routes import chat, extraction, health, memory, suggestions, tokens
 from app.config import settings
 from app.core.logging import log_startup, logger
 from app.core.rate_limit import limiter
@@ -54,6 +54,7 @@ app.include_router(chat.router, prefix="/api/v1", tags=["Chat"])
 app.include_router(memory.router, prefix="/api/v1", tags=["Memory"])
 app.include_router(suggestions.router, prefix="/api/v1", tags=["Suggestions"])
 app.include_router(tokens.router, prefix="/api/v1/admin", tags=["Admin"])
+app.include_router(extraction.router, prefix="/api/v1/admin", tags=["Admin"])
 
 # Serve widget bundle as static files
 static_dir = Path(__file__).parent.parent / "static"
