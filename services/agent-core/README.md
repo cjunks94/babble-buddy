@@ -120,11 +120,12 @@ Beyond basic vector storage, the system supports **structured memory extraction*
 - Application grouping for multi-tenant deployments
 
 **How it works:**
-1. Conversation turns are stored in a queue
-2. Admin triggers batch extraction via `/api/v1/admin/extraction/run`
-3. LLM extracts structured memories from conversations
-4. High-importance memories (≥0.9) are always injected into prompts
-5. Other memories are recalled via semantic search
+1. Conversation turns are stored after each message
+2. **Inline mode (default):** Extraction runs immediately after each message - no cron needed
+3. **Batch mode:** Set `MEMORY_EXTRACTION_INLINE=false` and trigger via admin endpoint
+4. LLM extracts structured memories from conversations
+5. High-importance memories (≥0.9) are always injected into prompts
+6. Other memories are recalled via semantic search
 
 **Admin Endpoints:**
 | Endpoint | Method | Description |
@@ -140,11 +141,16 @@ curl -X POST http://localhost:8000/api/v1/admin/extraction/run \
   -d '{"limit": 50}'
 ```
 
+**Scaling considerations:**
+- **Inline mode** (`MEMORY_EXTRACTION_INLINE=true`): Best for small-to-medium deployments. Extracts immediately after each message with no cron setup required.
+- **Batch mode** (`MEMORY_EXTRACTION_INLINE=false`): Preferred at scale. Queue turns and process via scheduled jobs to avoid LLM bottlenecks during peak traffic.
+
 **Configuration:**
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `MEMORY_EXTRACTION_ENABLED` | `true` | Enable structured extraction |
+| `MEMORY_EXTRACTION_INLINE` | `true` | Extract after each message (small/med scale) |
 | `MEMORY_EXTRACTION_MODEL` | `llama3.2` | Model for extraction |
 | `MEMORY_HIGH_IMPORTANCE_THRESHOLD` | `0.9` | Always-inject threshold |
 | `MEMORY_ALWAYS_INJECT_HIGH_IMPORTANCE` | `true` | Auto-inject critical memories |
-| `MEMORY_EXTRACTION_BATCH_SIZE` | `50` | Max turns per batch |
+| `MEMORY_EXTRACTION_BATCH_SIZE` | `50` | Max turns per batch (if inline=false) |

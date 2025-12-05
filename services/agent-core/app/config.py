@@ -52,6 +52,7 @@ class Settings(BaseSettings):
     memory_high_importance_threshold: float = 0.9  # Importance level for critical memories
     memory_always_inject_high_importance: bool = True  # Always inject >= threshold memories
     memory_extraction_batch_size: int = 50  # Max turns to process per batch
+    memory_extraction_inline: bool = True  # Extract immediately after each message (no cron needed)
 
     # Encryption (for API keys)
     encryption_key: str | None = None  # Fernet key for encrypting stored API keys
