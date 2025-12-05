@@ -4,8 +4,7 @@ An embeddable AI chatbot widget that connects to self-hosted AI backends.
 
 ## Live Demo
 
-- **Demo Page**: [demo-production-d4be.up.railway.app](https://demo-production-d4be.up.railway.app)
-- **API**: [babble-buddy-api.cjunker.dev](https://babble-buddy-api.cjunker.dev)
+Deploy your own instance using the Railway guide below, or run locally.
 
 ## Architecture
 
