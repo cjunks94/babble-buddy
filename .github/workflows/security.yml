@@ -17,7 +17,7 @@ jobs:
     name: Trivy - Python Dependencies
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
@@ -32,7 +32,7 @@ jobs:
     name: Trivy - Node Dependencies
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
@@ -47,7 +47,7 @@ jobs:
     name: Trivy - Docker Images
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Build Ollama image
         run: docker build -t babble-ollama:scan services/ollama
