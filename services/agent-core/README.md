@@ -54,6 +54,17 @@ curl -X POST http://localhost:8000/api/v1/chat \
 | `/api/v1/admin/extraction/status` | GET | Pending extraction count |
 | `/api/v1/admin/extraction/run` | POST | Trigger batch extraction |
 
+### Agents (Multi-Agent Orchestration)
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/v1/admin/agents` | POST | Create an agent |
+| `/api/v1/admin/agents` | GET | List agents (filter by app_id, role) |
+| `/api/v1/admin/agents/{id}` | GET | Get agent details |
+| `/api/v1/admin/agents/{id}` | PATCH | Update agent |
+| `/api/v1/admin/agents/{id}` | DELETE | Delete agent |
+
+> **Note:** Agent endpoints require `FEATURE_MULTI_AGENT=true`
+
 ## Authentication
 
 **App Token** — For chat/memory endpoints:
@@ -90,6 +101,10 @@ curl -H "Authorization: Bearer your-admin-key" ...
 | **Performance** |||
 | `MEMORY_EMBEDDING_CACHE_SIZE` | `10000` | LRU cache entries |
 | `MEMORY_EMBEDDING_CACHE_TTL` | `3600` | Cache TTL (seconds) |
+| **Multi-Agent** |||
+| `FEATURE_MULTI_AGENT` | `false` | Enable multi-agent orchestration |
+| `FEATURE_EXTERNAL_PROVIDERS` | `false` | Enable Claude/OpenAI/Gemini |
+| `ENCRYPTION_KEY` | — | Fernet key for API key encryption |
 
 ## Features
 
@@ -134,6 +149,42 @@ LRU cache reduces Ollama embedding calls. Check stats via `/health`:
 }
 ```
 
+### Multi-Agent Orchestration
+
+Route requests through multiple AI agents with different roles and providers.
+
+**Supported Providers:**
+- Ollama (self-hosted)
+- Anthropic (Claude)
+- OpenAI (GPT)
+- Google Gemini
+
+**Agent Roles:**
+| Role | Purpose |
+|------|---------|
+| `leader` | Coordinates tasks, makes decisions |
+| `coder` | Writes and generates code |
+| `reviewer` | Reviews output, provides feedback |
+| `researcher` | Gathers information |
+
+**Orchestration Strategies:**
+| Strategy | Behavior |
+|----------|----------|
+| `single` | Route to one specific agent |
+| `leader` | Leader coordinates with specialists |
+| `parallel` | Run all agents concurrently |
+| `chain` | Sequential: researcher → coder → reviewer |
+
+**Setup:**
+```bash
+# Generate encryption key
+python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+
+# Enable in .env
+FEATURE_MULTI_AGENT=true
+ENCRYPTION_KEY=<your-generated-key>
+```
+
 ## Development
 
 ```bash
@@ -142,4 +193,21 @@ pip install -e ".[dev]"
 
 # Run (requires PostgreSQL)
 uvicorn app.main:app --reload
+
+# Run tests
+pytest -v
+
+# Run tests with coverage
+pytest --cov=app --cov-report=term-missing
 ```
+
+## Testing
+
+The test suite includes 155+ tests covering:
+- Multi-agent orchestration strategies
+- Memory extraction and retrieval
+- API endpoint authentication
+- Embedding cache performance
+- Provider integrations
+
+**Coverage:** 72%+ (enforced by CI)
